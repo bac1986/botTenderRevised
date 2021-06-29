@@ -5,7 +5,7 @@ from PIL import Image, ImageTk  # pip install pillow
 import time
 import serial  # pip install serial
 import subprocess
-from LED_Control import *
+#from LED_Control import *
 #import gpiozero as GPIO
 
 # GPIO.setmode(GPIO.BOARD)
@@ -13,9 +13,9 @@ from LED_Control import *
 
 # arduino1 = serial.Serial('/dev/TTY/ACM0', baudrate=9600, timeout=0.1)
 # arduino1 = serial.Serial(port='COM6',baudrate=115200,timeout=1)
-arduino = serial.Serial('COM3',9600,timeout=0.1)
-#arduino.setRTS(False)
-arduino.open()
+arduino = serial.Serial('COM3', 9600, timeout=0.1)
+arduino.setRTS(False)
+arduino.close()
 
 # globals
 global ingredientsArray
@@ -56,7 +56,7 @@ finally:
 
 
 class Page(tk.Frame):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> object:
         tk.Frame.__init__(self, *args, **kwargs)
 
     def show(self):
@@ -96,19 +96,20 @@ class Page0(Page):  # login page
         def RFloginpoll():
             start = time.time()
             data = ''
+            arduino.open()
             arduino.flush()
-            arduino.write("readUID\n".encode())
+            arduino.write("readRFID\n".encode())
             time.sleep(0.1)
             arduino.flush()
             while time.time() < start + 3:
                 if arduino.in_waiting > 0:
                     data = arduino.readline().decode('utf-8').rstrip()
                     print('data = ' + str(data))
-                    if data == 'Reader 1 DC AC 02 5C':
+                    if data == 'Reader DC AC 02 5C':
                         args[1].lift()
                         userID[0] = 'jborum'
                         # return userID[0]
-                    elif data == 'Reader 1 6C 77 35 5B':
+                    elif data == 'Reader 1A3AF084':
                         args[1].lift()
                         userID[0] = 'bcarrier'
                         # return userID[0]
@@ -140,33 +141,6 @@ class Page0(Page):  # login page
                 f.close()
             finally:
                 userData = open(filename1, "a+")
-                userData.close()
-
-            filename2 = userID[0] + 'Preferences.txt'
-            try:
-                open(filename2)
-            except IOError:
-                f = open(filename2, "w")
-                f.write(userID[0])
-                f.close()
-            finally:
-                userData = open(filename2, "r")
-                LEDpref = userData.readlines()
-                print(LEDpref[0])
-                if LEDpref[0] == 'red':
-                    redDisplay(userID[0])
-                elif LEDpref[0] == 'orange':
-                    orangeDisplay(userID[0])
-                elif LEDpref[0] == 'yellow':
-                    yellowDisplay(userID[0])
-                elif LEDpref[0] == 'green':
-                    greenDisplay(userID[0])
-                elif LEDpref[0] == 'blue':
-                    blueDisplay(userID[0])
-                elif LEDpref[0] == 'indigo':
-                    indigoDisplay(userID[0])
-                elif LEDpref[0] == 'violet':
-                    violetDisplay(userID[0])
                 userData.close()
 
         RFlogin = tk.Button(self, text='Scan Card', font=fatFingerFont, bg='gray35', fg='gray99',
@@ -221,33 +195,6 @@ class Page0(Page):  # login page
                 f.close()
             finally:
                 userData = open(filename1, "a+")
-                userData.close()
-
-            filename2 = userID[0] + 'Preferences.txt'
-            try:
-                open(filename2)
-            except IOError:
-                f = open(filename2, "w")
-                f.write(userID[0])
-                f.close()
-            finally:
-                userData = open(filename2, "r")
-                LEDpref = userData.readlines()
-                print(LEDpref[0])
-                if LEDpref[0] == 'red':
-                    redDisplay(userID[0])
-                elif LEDpref[0] == 'orange':
-                    orangeDisplay(userID[0])
-                elif LEDpref[0] == 'yellow':
-                    yellowDisplay(userID[0])
-                elif LEDpref[0] == 'green':
-                    greenDisplay(userID[0])
-                elif LEDpref[0] == 'blue':
-                    blueDisplay(userID[0])
-                elif LEDpref[0] == 'indigo':
-                    indigoDisplay(userID[0])
-                elif LEDpref[0] == 'violet':
-                    violetDisplay(userID[0])
                 userData.close()
 
         login = tk.Button(self, text="Login", command=pinVerify, font=fatFingerFont, fg='gray99', bg='royal blue')
@@ -700,7 +647,7 @@ class Page4(Page):  # Settings
             #start = time.time()
             #data = ''
             arduino.flush()
-            arduino.write("readUID\n".encode())
+            arduino.write("readRFID\n".encode())
             time.sleep(0.1)
             arduino.flush()
 
@@ -948,33 +895,6 @@ class Page7(Page):  # UserProfile Menu
         userDataFavorites.close()
         userDataRecents.close()
 
-        #####################################################################################################################
-        ledColorSelector = tk.Label(self, text="LED Color", font=headerFont, bg='gray24', fg='gray99').place(relx=0.77,
-                                                                                                             rely=0.15)
-        whiteColor = tk.Button(self, text='White', font=fatFingerFont, fg='gray99', bg='gray35',
-                               command=lambda: whiteDisplay(userID[0])).place(relx=0.73, rely=0.275, height=50,
-                                                                              width=100)
-        redColor = tk.Button(self, text="Red", font=fatFingerFont, bg='gray35', fg='red',
-                             command=lambda: redDisplay(userID[0])).place(relx=0.73, rely=0.45, height=50, width=100)
-        orangeColor = tk.Button(self, text="Orange", font=fatFingerFont, bg='gray35', fg='orange',
-                                command=lambda: orangeDisplay(userID[0])).place(relx=0.73, rely=0.625, height=50,
-                                                                                width=100)
-        yellowColor = tk.Button(self, text="Yellow", font=fatFingerFont, bg='gray35', fg='yellow',
-                                command=lambda: yellowDisplay(userID[0])).place(relx=0.73, rely=0.8, height=50,
-                                                                                width=100)
-        greenColor = tk.Button(self, text="Green", font=fatFingerFont, bg='gray35', fg='green2',
-                               command=lambda: greenDisplay(userID[0])).place(relx=0.87, rely=0.275, height=50,
-                                                                              width=100)
-        blueColor = tk.Button(self, text="Blue", font=fatFingerFont, bg='gray35', fg='blue',
-                              command=lambda: blueDisplay(userID[0])).place(relx=0.87, rely=0.45, height=50, width=100)
-        indigoColor = tk.Button(self, text="Indigo", font=fatFingerFont, bg='gray35', fg='dark violet',
-                                command=lambda: indigoDisplay(userID[0])).place(relx=0.87, rely=0.625, height=50,
-                                                                                width=100)
-        violetColor = tk.Button(self, text="Violet", font=fatFingerFont, bg='gray35', fg='magenta2',
-                                command=lambda: violetDisplay(userID[0])).place(relx=0.87, rely=0.8, height=50,
-                                                                                width=100)
-
-
 class Page8(Page):  # pour page 2
     def __init__(self, *args, **kwargs):
         Page.__init__(self, *args, **kwargs, bg='gray24')
@@ -1016,85 +936,6 @@ class Page8(Page):  # pour page 2
                                                                                                                   height=60,
                                                                                                                   width=100)
 
-
-#class Page9(Page):  # inventory replacement 2
-#    def __init__(self, *args, **kwargs):
-#        Page.__init__(self, *args, **kwargs, bg='gray24')
-#        headerFont = tkFont.Font(family='Bell Gothic Std Light', size=16)
-#        fatFingerFont = tkFont.Font(family='Bell Gothic Std Light', size=30)
-#       welcomeFont = tkFont.Font(family='Bell Gothic Std Light', size=42, weight='bold')
-#
-#        backtoMenu = tk.Button(self, text="← Back to Main Menu", font=headerFont, bg='gray35', fg='gray99',
-#                               command=args[1].lift).place(x=0, y=0, height=75, width=250)
-#
-#        replace1 = tk.Radiobutton(self, text='Bottle 1', bg='gray35', fg='gray99', font=fatFingerFont,
-#                                  command=lambda: replacementIndicator(0))
-#        replace1.place(relx=0.35, rely=0.1)
-#        replace2 = tk.Radiobutton(self, text='Bottle 2', bg='gray35', fg='gray99', font=fatFingerFont,
-#                                  command=lambda: replacementIndicator(1))
-#        replace2.place(relx=0.35, rely=0.25)
-#        replace3 = tk.Radiobutton(self, text='Bottle 3', bg='gray35', fg='gray99', font=fatFingerFont,
-#                                  command=lambda: replacementIndicator(2))
-#        replace3.place(relx=0.35, rely=0.4)
-#       replace4 = tk.Radiobutton(self, text='Bottle 4', bg='gray35', fg='gray99', font=fatFingerFont,
-#                                  command=lambda: replacementIndicator(3))
-#        replace4.place(relx=0.35, rely=0.55)
-#        replace5 = tk.Radiobutton(self, text='Bottle 5', bg='gray35', fg='gray99', font=fatFingerFont,
-#                                 command=lambda: replacementIndicator(4))
-#        replace5.place(relx=0.35, rely=0.7)
-#       replace6 = tk.Radiobutton(self, text='Bottle 6', bg='gray35', fg='gray99', font=fatFingerFont,
-#                                  command=lambda: replacementIndicator(5))
-#        replace6.place(relx=0.35, rely=0.85)
-#
-#        confirmPrime = tk.Button(self, text='Prime All', bg='gray35', fg='gray99', font=welcomeFont,
-#                                 command=lambda: primeFunc())
-#        confirmPrime.place(relx=0.675, rely=0.45)
-#
-#        global primeFunc
-#
-#        def primeFunc():
-#            arduino.flush()
-#            arduino.write("custom\n".encode())
-#            arduino.flush()
-#            data = arduino.readline().decode('utf-8').rstrip()
-#            print(data)
-#            while data != 'Vodka':
-#                data = arduino.readline().decode('utf-8').rstrip()
-#                print(data)
-#
-#            if data == 'Vodka':
-#                arduino.write(primeArray[0].encode('utf-8'))
-#                data = arduino.readline().decode('utf-8').rstrip()
-#                print(data)
-#                # time.sleep(0.05)
-#            if data == 'WhiteRum':
-#                arduino.write(primeArray[1].encode('utf-8'))
-#                data = arduino.readline().decode('utf-8').rstrip()
-#                print(data)
-#                time.sleep(0.05)
-#            if data == 'TripleSec':
-#               arduino.write(primeArray[2].encode('utf-8'))
-#                data = arduino.readline().decode('utf-8').rstrip()
-#               print(data)
-#                time.sleep(0.05)
-#           if data == 'Coke':
-#                arduino.write(primeArray[3].encode('utf-8'))
-#                data = arduino.readline().decode('utf-8').rstrip()
-#                print(data)
-#                time.sleep(0.05)
-#           if data == 'CranberryJuice':
-#               arduino.write(primeArray[4].encode('utf-8'))
-#               data = arduino.readline().decode('utf-8').rstrip()
-#               print(data)
-#                time.sleep(0.05)
-#            if data == 'LimeJuice':
-#                arduino.write(primeArray[5].encode('utf-8'))
-#                data = arduino.readline().decode('utf-8').rstrip()
-#               print(data)
-#                time.sleep(0.05)
-#            while data != 'Done':
-#               data = arduino.readline().decode('utf-8').rstrip()
-#                print(data)
 
 
 class Page10(Page):  # help menu

@@ -8,7 +8,7 @@ import time
 import subprocess
 
 global ingredientsArray
-ingredientsArray = [["Vodka", "Rum", "Triple sec", "Coke", "Cranberry Juice", "Lime Juice", "Whiskey"],
+ingredientsArray = [["Vodka", "Rum", "Triple sec", "Coke", "Cranberry", "Lime", "Whiskey"],
                     ["1000000", "0100000", "0010000", "0001000", "0000100", "0000010", "0000001"]]
 
 global recipeArray
@@ -30,14 +30,16 @@ arduino.open()
 
 
 class MainView(tk.Tk):
-    def __init__(self, *args, **kwargs):
-        tk.Frame.__init__(self, *args, **kwargs)
 
-        button_frame = tk.Frame(self)
-        button_frame.pack(side="top", fill="x", expand=False)
-        container = tk.Frame(self)
+    def __init__(self, *args, **kwargs):
+        tk.Tk.__init__(self, *args, **kwargs)
+
+        #button_frame = tk.Frame(self)
+        #button_frame.pack(side="top", fill="x", expand=False)
+        # fatFingerFont = tkFont.Font(family='Bell Gothic Std Light', size=18)
+
+        container = tk.Frame(self, width=1024, height=600)
         container.pack(side="top", fill="both", expand=True)
-        fatFingerFont = tkFont.Font(family='Bell Gothic Std Light', size=18)
 
         self.frames = {}
 
@@ -45,6 +47,7 @@ class MainView(tk.Tk):
             frame = F(container, self)
 
             self.frames[F] = frame
+            frame.place(relheight=1, relwidth=1)
 
         self.show_frame(p1)
 
@@ -56,38 +59,43 @@ class MainView(tk.Tk):
 class p1(tk.Frame):  # main menu
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent, bg='gray24')
-        headerFont = tkFont.Font(family='Bell Gothic Std Light', size=16)
         fatFingerFont = tkFont.Font(family='Bell Gothic Std Light', size=16)
-        welcomeFont = tkFont.Font(family='Bell Gothic Std Light', size=42, weight='bold')
+        welcomeFont = tkFont.Font(family="Gill Sans", size=50)
 
-        self.logoIMG = ImageTk.PhotoImage(Image.open('botTender_logo.png').resize((225, 225), Image.ANTIALIAS))
-        self.botTenderLogo = tk.Label(self, image=self.logoIMG, bg='gray24').place(relx=412 / 1024, rely=100 / 600)
+        self.logoIMG = ImageTk.PhotoImage(Image.open('cocktail.png').resize((340, 340), Image.ANTIALIAS))
+        self.botTenderLogo = tk.Label(self, image=self.logoIMG).place(relx=120 / 1024, rely=180 / 600)
         self.cocktailsMenu = ImageTk.PhotoImage(Image.open('Cocktailmenu.png'))
         self.shotsMenu = ImageTk.PhotoImage(Image.open('shotsMenu.png'))
         self.settingButton = ImageTk.PhotoImage(Image.open('settingButton.png').resize((36, 34), Image.ANTIALIAS))
         self.helpIcon = ImageTk.PhotoImage(Image.open('helpButton.png').resize((25, 25), Image.ANTIALIAS))
 
-        b2 = tk.Button(self, text="Custom Pour Menu", font=fatFingerFont, image=self.shotsMenu, compound=tk.TOP, bg='royal blue', fg='gray99', command=lambda: controller.show_frame(p2)).place(height=150, width=250, relx=250 / 1024, rely=375 / 600)
+        bottender = tk.Label(self, text="BotTender", font=welcomeFont, background='gray24', foreground='gray99')
+        bottender.place(relx=350 / 1024, rely=50 / 600)
 
-        b3 = tk.Button(self, text='Mixed Drink Menu', font=fatFingerFont, image=self.cocktailsMenu, compound=tk.TOP, bg='royal blue', fg='gray99', command=lambda: controller.show_frame(p3)).place(height=150, width=250, relx=524 / 1024, rely=375 / 600)
+        b2 = tk.Button(self, text="Custom Pour Menu", font=fatFingerFont, bg='gray50', image=self.shotsMenu, compound=tk.TOP, command=lambda: controller.show_frame(p2))
+        b2.place(height=150, width=250, relx=590 / 1024, rely=175 / 600)
 
-        b4 = tk.Button(self, text="Settings", font=fatFingerFont, image=self.settingButton, compound=tk.LEFT, bg='gray35', fg='gray99')
-        b4.place(relx=822 / 1024, rely=528 / 600, height=70, width=200)
+        b3 = tk.Button(self, text='Mixed Drink Menu', font=fatFingerFont, bg='gray50', image=self.cocktailsMenu, compound=tk.TOP, command=lambda: controller.show_frame(p3))
+        b3.place(height=150, width=250, relx=590 / 1024, rely=375 / 600)
 
-        getHelp = tk.Button(self, text="  Help", image=self.helpIcon, compound=tk.LEFT, command=p10.lift, bg='gray35', fg='gray99', font=fatFingerFont).place(relx=0, rely=0, height=70, width=200)
+        b4 = ttk.Button(self, text="Settings", image=self.settingButton, compound=tk.LEFT, command=lambda: controller.show_frame(p4))
+        b4.place(relx=822 / 1024, rely=0, height=70, width=200)
+
+        getHelp = ttk.Button(self, text="  Help", image=self.helpIcon, compound=tk.LEFT, command=lambda: controller.show_frame(p10))
+        getHelp.place(relx=0, rely=0, height=70, width=200)
 
 
 class p2(tk.Frame):  # Custom/Shots
-    def __init__(self, *args, **kwargs):
-        tk.Frame.__init__(self, *args, **kwargs)
-        headerFont = tkFont.Font(family='Bell Gothic Std Light', size=26)
-        fatFingerFont = tkFont.Font(family='Bell Gothic Std Light', size=18)
-        fatFingerFont2 = tkFont.Font(family='Bell Gothic Std Light', size=15)
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent, bg='gray24')
 
+        fatFingerFont = tkFont.Font(family='Bell Gothic Std Light', size=26)
 
-        label = tk.Label(self, text="Shots/Custom Pour Menu", font=headerFont, bg='gray24', fg='gray99').place(relx=0.33, y=0)
+        label = ttk.Label(self, text="Shots/Custom Pour Menu", font=fatFingerFont, background='gray24', foreground='gray99')
+        label.place(relx=0.33, rely=.05, height=60)
 
-        backtoMenu = tk.Button(self, text="← Back to Main Menu", font=fatFingerFont2, bg='gray35', fg='gray99', command=args[1].lift).place(x=0, y=0, height=60, width=225)
+        backtoMenu = ttk.Button(self, text="← Back to Main Menu", command=lambda: controller.show_frame(p1))
+        backtoMenu.place(x=0, y=0, height=60, width=225)
 
         global customCount
         customCount = [0] * 6
@@ -131,6 +139,7 @@ class p2(tk.Frame):  # Custom/Shots
         def confirm_pour():
             if messagebox.askquestion("Confirm", "Do you want to dispense this custom order?") == "yes":
                 customPourFunc(event=custom_pour)
+
             else:
                 tk.messagebox.showinfo("Reset", "Resetting Selection")
                 resetCount()
@@ -148,7 +157,6 @@ class p2(tk.Frame):  # Custom/Shots
                 print("Current Order:")
                 print(currentOrder[i])
 
-            arduino.open()
             arduino.flush()
             arduino.write("custom\n".encode())
             arduino.flush()
@@ -190,128 +198,104 @@ class p2(tk.Frame):  # Custom/Shots
             while data != 'Done':
                 data = arduino.readline().decode('utf-8').rstrip()
                 print(data)
+                controller.show_frame(p1)
 
-        custom_pour = tk.Button(self, text="Pour Custom Selection", font=fatFingerFont2, bg='gray35', fg='gray99', command=lambda: confirm_pour()).place(relx=.3, rely=.85, height=60, width=220)
+        custom_pour = tk.Button(self, text="Pour Custom Selection", font=fatFingerFont, command=lambda: confirm_pour())
+        custom_pour.place(relx=.18, rely=.85, height=70, width=380)
 
-        resetCounterButton = tk.Button(self, text="Reset Count", font=fatFingerFont2, bg='gray35', fg='gray99', command=lambda: resetCount()).place(relx=.555, rely=.85, height=60, width=150)
+        resetCounterButton = tk.Button(self, text="Reset Count", font=fatFingerFont, command=lambda: resetCount())
+        resetCounterButton.place(relx=.63, rely=.85, height=70, width=220)
 
-        shotOption1 = tk.Label(self, text="Vodka", font=fatFingerFont, bg='gray24', fg='gray99').place(relx=175 / 1024, rely=0.17)
+        shotOption1 = ttk.Label(self, text="Vodka", font=fatFingerFont, background='gray24', foreground='gray99')
+        shotOption1.place(relx=125 / 1024, rely=0.17)
+        shotCounter1 = ttk.Label(self, text="0", font=fatFingerFont, background='gray24', foreground='gray99', wraplength=10)
+        shotCounter1.place(height=50, width=50, relx=125 / 1024, rely=0.24)
+        ounceLabel = ttk.Label(self, text="(oz)", font=fatFingerFont, background='gray24', foreground='gray99')
+        ounceLabel.place(height=50, width=70, relx=175 / 1024, rely=0.24)
+        optAdd1 = tk.Button(self, text="+", font=fatFingerFont, command=lambda: addShot(shotCounter1))
+        optAdd1.place(height=80, width=80, relx=320 / 1024, rely=0.19)
+        optSub1 = tk.Button(self, text="-", font=fatFingerFont, command=lambda: lessShot(shotCounter1))
+        optSub1.place(height=80, width=80, relx=420 / 1024, rely=0.19)
 
-        shotCounter1 = tk.Label(self, text="0", font=fatFingerFont, bg='gray24', fg='gray99', wraplength=10)
-        shotCounter1.place(height=50, width=50, relx=175 / 1024, rely=0.225)
+        shotOption2 = ttk.Label(self, text="Rum", font=fatFingerFont, background='gray24', foreground='gray99')
+        shotOption2.place(relx=125 / 1024,  rely=0.4)
+        shotCounter2 = ttk.Label(self, text=0, font=fatFingerFont, background='gray24', foreground='gray99', wraplength=11)
+        shotCounter2.place(height=50, width=50, relx=125 / 1024, rely=0.47)
+        ounceLabel2 = ttk.Label(self, text="(oz)", font=fatFingerFont, background='gray24', foreground='gray99')
+        ounceLabel2.place(height=50, width=70, relx=175 / 1024, rely=0.47)
+        optAdd2 = tk.Button(self, text="+", font=fatFingerFont, command=lambda: addShot(shotCounter2))
+        optAdd2.place(height=80, width=80, relx=320 / 1024, rely=0.415)
+        optSub2 = tk.Button(self, text="-", font=fatFingerFont, command=lambda: lessShot(shotCounter2))
+        optSub2.place(height=80, width=80, relx=420 / 1024, rely=0.415)
 
-        ounceLabel = tk.Label(self, text="(oz)", font=fatFingerFont, bg='gray24', fg='gray99').place(height=50, width=50, relx=0.22, rely=0.225)
+        shotOption3 = ttk.Label(self, text="Triple Sec", font=fatFingerFont, background='gray24', foreground='gray99')
+        shotOption3.place(relx=125 / 1024, rely=0.63)
+        shotCounter3 = ttk.Label(self, text=0, font=fatFingerFont, background='gray24', foreground='gray99', wraplength=12)
+        shotCounter3.place(height=50, width=50, relx=125 / 1024, rely=0.7)
+        ounceLabel3 = ttk.Label(self, text="(oz)", font=fatFingerFont, background='gray24', foreground='gray99')
+        ounceLabel3.place(height=50, width=70, relx=175 / 1024, rely=0.7)
+        optAdd3 = tk.Button(self, text="+", font=fatFingerFont, command=lambda: addShot(shotCounter3))
+        optAdd3.place(height=80, width=80, relx=320 / 1024, rely=0.65)
+        optSub3 = tk.Button(self, text="-", font=fatFingerFont, command=lambda: lessShot(shotCounter3))
+        optSub3.place(height=80, width=80, relx=420 / 1024, rely=0.65)
 
-        optAdd1 = tk.Button(self, text="+", font=fatFingerFont2, bg='gray35', fg='gray99', command=lambda: addShot(shotCounter1)).place(height=40, width=40, relx=350 / 1024, rely=0.225)
+        shotOption4 = ttk.Label(self, text="Coke", font=fatFingerFont, background='gray24', foreground='gray99')
+        shotOption4.place(relx=575 / 1024, rely=0.17)
+        shotCounter4 = ttk.Label(self, text=0, font=fatFingerFont, background='gray24', foreground='gray99', wraplength=13)
+        shotCounter4.place(height=50, width=50, relx=575 / 1024, rely=0.24)
+        ounceLabel4 = ttk.Label(self, text="(oz)", font=fatFingerFont, background='gray24', foreground='gray99')
+        ounceLabel4.place(height=50, width=70, relx=615 / 1024, rely=0.24)
+        optAdd4 = tk.Button(self, text="+", font=fatFingerFont, command=lambda: addShot(shotCounter4))
+        optAdd4.place(height=80, width=80, relx=750 / 1024, rely=0.19)
+        optSub4 = tk.Button(self, text="-", font=fatFingerFont, command=lambda: lessShot(shotCounter4))
+        optSub4.place(height=80, width=80, relx=850 / 1024, rely=0.19)
 
-        optSub1 = tk.Button(self, text="-", font=fatFingerFont2, bg='gray35', fg='gray99', command=lambda: lessShot(shotCounter1)).place(height=40, width=40, relx=400 / 1024, rely=0.225)
+        shotOption5 = ttk.Label(self, text="Cranberry", font=fatFingerFont, background='gray24', foreground='gray99')
+        shotOption5.place(relx=575 / 1024, rely=0.4)
+        shotCounter5 = ttk.Label(self, text=0, font=fatFingerFont, background='gray24', foreground='gray99', wraplength=14)
+        shotCounter5.place(height=50, width=50, relx=575 / 1024, rely=0.47)
+        ounceLabel5 = ttk.Label(self, text="(oz)", font=fatFingerFont, background='gray24', foreground='gray99')
+        ounceLabel5.place(height=50, width=70, relx=615 / 1024, rely=0.47)
+        optAdd5 = tk.Button(self, text="+", font=fatFingerFont, command=lambda: addShot(shotCounter5))
+        optAdd5.place(height=80, width=80, relx=750 / 1024, rely=0.415)
+        optSub5 = tk.Button(self, text="-", font=fatFingerFont, command=lambda: lessShot(shotCounter5))
+        optSub5.place(height=80, width=80, relx=850 / 1024, rely=0.415)
 
-        shotOption2 = tk.Label(self, text="Rum", font=fatFingerFont, bg='gray24', fg='gray99').place(relx=175 / 1024,  rely=0.4)
-
-        shotCounter2 = tk.Label(self, text=0, font=fatFingerFont, bg='gray24', fg='gray99', wraplength=11)
-        shotCounter2.place(height=50, width=50, relx=175 / 1024, rely=0.45)
-
-        ounceLabel2 = tk.Label(self, text="(oz)", font=fatFingerFont, bg='gray24', fg='gray99').place(height=50, width=50, relx=.22, rely=0.45)
-
-        optAdd2 = tk.Button(self, text="+", font=fatFingerFont2, bg='gray35', fg='gray99', command=lambda: addShot(shotCounter2)).place(height=40, width=40, relx=350 / 1024, rely=0.45)
-
-        optSub2 = tk.Button(self, text="-", bg='gray35', fg='gray99', command=lambda: lessShot(shotCounter2)).place(height=40, width=40, relx=400 / 1024, rely=0.45)
-
-        shotOption3 = tk.Label(self, text="Triple Sec", font=fatFingerFont, bg='gray24', fg='gray99').place(relx=175/1024, rely=0.65)
-
-        shotCounter3 = tk.Label(self, text=0, font=fatFingerFont, bg='gray24', fg='gray99', wraplength=12)
-        shotCounter3.place(height=50, width=50, relx=175 / 1024, rely=0.7)
-
-        ounceLabel3 = tk.Label(self, text="(oz)", font=fatFingerFont, bg='gray24', fg='gray99').place(height=50, width=50, relx=.22, rely=0.7)
-
-        optAdd3 = tk.Button(self, text="+", font=fatFingerFont2, bg='gray35', fg='gray99', command=lambda: addShot(shotCounter3)).place(height=40, width=40, relx=350 / 1024, rely=0.7)
-
-        optSub3 = tk.Button(self, text="-", font=fatFingerFont2, bg='gray35', fg='gray99', command=lambda: lessShot(shotCounter3)).place(height=40, width=40, relx=400 / 1024, rely=0.7)
-
-        shotOption4 = tk.Label(self, text="Coke", font=fatFingerFont, bg='gray24', fg='gray99').place(relx=575 / 1024, rely=0.17)
-
-        shotCounter4 = tk.Label(self, text=0, font=fatFingerFont, bg='gray24', fg='gray99', wraplength=13)
-        shotCounter4.place(height=50, width=50, relx=575 / 1024, rely=0.225)
-
-        ounceLabel4 = tk.Label(self, text="(oz)", font=fatFingerFont, bg='gray24', fg='gray99').place(height=50, width=50, relx=615 / 1024, rely=0.225)
-
-        optAdd4 = tk.Button(self, text="+", font=fatFingerFont2, bg='gray35', fg='gray99', command=lambda: addShot(shotCounter4)).place(height=40, width=40, relx=750 / 1024, rely=0.225)
-
-        optSub4 = tk.Button(self, text="-", font=fatFingerFont2, bg='gray35', fg='gray99', command=lambda: lessShot(shotCounter4)).place(height=40, width=40, relx=800 / 1024, rely=0.225)
-
-        shotOption5 = tk.Label(self, text="Cranberry Juice", font=fatFingerFont, bg='gray24', fg='gray99').place(relx=575 / 1024, rely=0.4)
-
-        shotCounter5 = tk.Label(self, text=0, font=fatFingerFont, bg='gray24', fg='gray99', wraplength=14)
-        shotCounter5.place(height=50, width=50, relx=575 / 1024, rely=0.45)
-
-        ounceLabel = tk.Label(self, text="(oz)", font=fatFingerFont, bg='gray24', fg='gray99').place(height=50, width=50, relx=615 / 1024, rely=0.45)
-
-        optAdd5 = tk.Button(self, text="+", font=fatFingerFont2, bg='gray35', fg='gray99', command=lambda: addShot(shotCounter5)).place(height=40, width=40, relx=750 / 1024, rely=0.45)
-
-        optSub5 = tk.Button(self, text="-", font=fatFingerFont2, bg='gray35', fg='gray99', command=lambda: lessShot(shotCounter5)).place(height=40, width=40, relx=800 / 1024, rely=0.45)
-
-        shotOption6 = tk.Label(self, text="Lime Juice", font=fatFingerFont, bg='gray24', fg='gray99').place(relx=575 / 1024, rely=0.65)
-
-        shotCounter6 = tk.Label(self, text=0, font=fatFingerFont, bg='gray24', fg='gray99', wraplength=15)
+        shotOption6 = ttk.Label(self, text="Lime", font=fatFingerFont, background='gray24', foreground='gray99')
+        shotOption6.place(relx=575 / 1024, rely=0.63)
+        shotCounter6 = ttk.Label(self, text=0, font=fatFingerFont, background='gray24', foreground='gray99', wraplength=15)
         shotCounter6.place(height=50, width=50, relx=575 / 1024, rely=0.7)
-
-        ounceLabel = tk.Label(self, text="(oz)", font=fatFingerFont, bg='gray24', fg='gray99').place(height=50, width=50, relx=615 / 1024, rely=0.7)
-
-        optAdd6 = tk.Button(self, text="+", font=fatFingerFont2, bg='gray35', fg='gray99', command=lambda: addShot(shotCounter6)).place(height=40, width=40, relx=750 / 1024, rely=0.7)
-
-        optSub6 = tk.Button(self, text="-", font=fatFingerFont2, bg='gray35', fg='gray99', command=lambda: lessShot(shotCounter6)).place(height=40, width=40, relx=800 / 1024, rely=0.7)
+        ounceLabel6 = ttk.Label(self, text="(oz)", font=fatFingerFont, background='gray24', foreground='gray99')
+        ounceLabel6.place(height=50, width=70, relx=615 / 1024, rely=0.7)
+        optAdd6 = tk.Button(self, text="+", font=fatFingerFont, command=lambda: addShot(shotCounter6))
+        optAdd6.place(height=80, width=80, relx=750 / 1024, rely=0.65)
+        optSub6 = tk.Button(self, text="-", font=fatFingerFont, command=lambda: lessShot(shotCounter6))
+        optSub6.place(height=80, width=80, relx=850 / 1024, rely=0.65)
 
 
 class p3(tk.Frame):  # Mixed drink menu
-    def __init__(self, *args, **kwargs):
-        tk.Frame.__init__(self, *args, **kwargs)
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent, bg='gray24')
 
         mainHeaderFont = tkFont.Font(family='Bell Gothic Std Light', size=26)
         headerFont = tkFont.Font(family='Bell Gothic Std Light', size=20)
-        fatFingerFont = tkFont.Font(family='Bell Gothic Std Light', size=16)
+        fatFingerFont = tkFont.Font(family='Bell Gothic Std Light', size=26)
 
         userFile = 'userRecents' + '.txt'
         userData = open(userFile, 'a+')
 
-        backtoMenu = tk.Button(self, text="← Back to Main Menu", font=fatFingerFont, bg='gray35', fg='gray99',
-                               command=args[1].lift)
+        backtoMenu = ttk.Button(self, text="← Back to Main Menu", command=lambda: controller.show_frame(p1))
         backtoMenu.place(relx=0, rely=0, height=60, width=225)
 
-        label = tk.Label(self, text="Mixed Drink Menu", font=mainHeaderFont, bg='gray24', fg='gray99')
-        label.place(relx=400 / 1024, rely=0)
+        label = ttk.Label(self, text="Mixed Drink Menu", font=mainHeaderFont, background='gray24', foreground='gray99')
+        label.place(relx=400 / 1024, rely=.06)
 
-        def searchSort():
-            searchEntry = searchInput.get()
-            if searchEntry != "":
-                for i in reversed(range(15)):
-                    if searchEntry != recipeList.get(i):
-                        recipeList.delete(i)
-            elif searchEntry == "":
-                for i in range(6):
-                    recipeList.delete(i)
-                    recipeList.insert(i, (recipeArray[0][i]))
-
-        def pinKeyboard(event):
-            alreadyOpen = False
-            if alreadyOpen == False:
-                pop = subprocess.Popen("osk", stdout=subprocess.PIPE, shell=True)
-                alreadyOpen = True
-
-        recipeSearch = tk.Label(self, text='Search:', font=headerFont, bg='gray24', fg='gray99')
-        recipeSearch.place(relx=360 / 1024, rely=60 / 600)
-        searchInput = tk.Entry(self, bd=5, font=fatFingerFont)
-        searchInput.place(relx=465 / 1024, rely=65 / 600, height=30, width=150)
-        searchInput.bind("<Button-1>", pinKeyboard)
-        searchButton = tk.Button(self, text="►", font=fatFingerFont, command=searchSort)
-        searchButton.place(height=30, width=30, relx=625 / 1024, rely=65 / 600)
-        self.after(10000, searchSort)
-
-        recipeScroll = tk.Scrollbar(self)
-        recipeScroll.place(height=383, width=25, relx=550 / 1024, rely=115 / 600)
+        recipeScroll = ttk.Scrollbar(self)
+        recipeScroll.place(height=420, width=25, relx=600 / 1024, rely=130 / 600)
         recipeList = tk.Listbox(self, yscrollcommand=recipeScroll.set, font=headerFont)
         for i in range(6):
             recipeList.insert(i, (recipeArray[0][i]))
-        recipeList.place(height=383, width=250, relx=300 / 1024, rely=115 / 600)
+        recipeList.place(height=420, width=250, relx=350 / 1024, rely=130 / 600)
         recipeScroll.config(command=recipeList.yview)
 
         ingredientsDet = ["", "", "", "", "", "", ""]
@@ -333,7 +317,7 @@ class p3(tk.Frame):  # Mixed drink menu
                             drinkDesc.insert(tk.END, str(ingredientsDet[j]) + "\n")
 
         drinkDesc = tk.Text(self, height=13.4, font=headerFont)
-        drinkDesc.place(relx=600 / 1024, rely=115 / 600, height=383)
+        drinkDesc.place(relx=680 / 1024, rely=130 / 600, height=300, width=300)
         recipeList.bind('<<ListboxSelect>>', onSelect)
 
         checkSortSum = 000000
@@ -355,31 +339,33 @@ class p3(tk.Frame):  # Mixed drink menu
                         if list(ingredientsArray[1][i])[i] != list(recipeArray[1][j])[i]:
                             recipeList.delete(j)
 
-        C1 = tk.Checkbutton(self, text=ingredientsArray[0][0], variable=CheckVar1, onvalue=1, offvalue=0, height=1,
-                            width=20, font=fatFingerFont, bg='gray35', fg='LightBlue3', command=lambda: checkSort())
-        C2 = tk.Checkbutton(self, text=ingredientsArray[0][1], variable=CheckVar2, onvalue=1, offvalue=0, height=1,
-                            width=20, font=fatFingerFont, bg='gray35', fg='LightBlue3', command=lambda: checkSort())
-        C3 = tk.Checkbutton(self, text=ingredientsArray[0][2], variable=CheckVar3, onvalue=1, offvalue=0, height=1,
-                            width=20, font=fatFingerFont, bg='gray35', fg='LightBlue3', command=lambda: checkSort())
-        C4 = tk.Checkbutton(self, text=ingredientsArray[0][3], variable=CheckVar4, onvalue=1, offvalue=0, height=1,
-                            width=20, font=fatFingerFont, bg='gray35', fg='LightBlue3', command=lambda: checkSort())
-        C5 = tk.Checkbutton(self, text=ingredientsArray[0][4], variable=CheckVar5, onvalue=1, offvalue=0, height=1,
-                            width=20, font=fatFingerFont, bg='gray35', fg='LightBlue3', command=lambda: checkSort())
-        C6 = tk.Checkbutton(self, text=ingredientsArray[0][5], variable=CheckVar6, onvalue=1, offvalue=0, height=1,
-                            width=20, font=fatFingerFont, bg='gray35', fg='LightBlue3', command=lambda: checkSort())
-
-        recipeSort = tk.Label(self, text='Sort by Ingredient:', font=headerFont, bg='gray24', fg='gray99')
         sortHeight = 15
-        recipeSort.place(relx=25 / 1024, rely=(sortHeight + 45) / 600)
 
-        C1.place(width=265, height=40, relx=0, rely=(sortHeight + 105) / 600)
-        C2.place(width=265, height=40, relx=0, rely=(sortHeight + 180) / 600)
-        C3.place(width=265, height=40, relx=0, rely=(sortHeight + 255) / 600)
-        C4.place(width=265, height=40, relx=0, rely=(sortHeight + 330) / 600)
-        C5.place(width=265, height=40, relx=0, rely=(sortHeight + 405) / 600)
-        C6.place(width=265, height=40, relx=0, rely=(sortHeight + 480) / 600)
+        C1 = tk.Checkbutton(self, text=ingredientsArray[0][0], font=fatFingerFont, background='gray24', foreground='gray99', indicatoron=0, variable=CheckVar1, onvalue=1, offvalue=0, command=lambda: checkSort())
+        C2 = tk.Checkbutton(self, text=ingredientsArray[0][1], font=fatFingerFont, background='gray24', foreground='gray99', indicatoron=0, variable=CheckVar2, onvalue=1, offvalue=0, command=lambda: checkSort())
+        C3 = tk.Checkbutton(self, text=ingredientsArray[0][2], font=fatFingerFont, background='gray24', foreground='gray99', indicatoron=0, variable=CheckVar3, onvalue=1, offvalue=0, command=lambda: checkSort())
+        C4 = tk.Checkbutton(self, text=ingredientsArray[0][3], font=fatFingerFont, background='gray24', foreground='gray99', indicatoron=0, variable=CheckVar4, onvalue=1, offvalue=0, command=lambda: checkSort())
+        C5 = tk.Checkbutton(self, text=ingredientsArray[0][4], font=fatFingerFont, background='gray24', foreground='gray99', indicatoron=0, variable=CheckVar5, onvalue=1, offvalue=0, command=lambda: checkSort())
+        C6 = tk.Checkbutton(self, text=ingredientsArray[0][5], font=fatFingerFont, background='gray24', foreground='gray99', indicatoron=0, variable=CheckVar6, onvalue=1, offvalue=0, command=lambda: checkSort())
+        C1.place(width=265, height=40, relx=.045, rely=(sortHeight + 170) / 600)
+        C2.place(width=265, height=40, relx=.045, rely=(sortHeight + 230) / 600)
+        C3.place(width=265, height=40, relx=.045, rely=(sortHeight + 290) / 600)
+        C4.place(width=265, height=40, relx=.045, rely=(sortHeight + 350) / 600)
+        C5.place(width=265, height=40, relx=.045, rely=(sortHeight + 410) / 600)
+        C6.place(width=265, height=40, relx=.045, rely=(sortHeight + 470) / 600)
 
-        global pourFunc
+        recipeSort = ttk.Label(self, text='Sort by Ingredient:', font=fatFingerFont, background='gray24', foreground='gray99')
+        recipeSort.place(relx=25 / 1024, rely=(sortHeight + 110) / 600)
+
+        pour = tk.Button(self, text="Pour Selection", font=fatFingerFont, command=lambda: confirm_pour_func())
+        pour.place(relx=680/1024, rely=470/600, height=80, width=300)
+
+
+        def confirm_pour_func():
+            if messagebox.askquestion("Confirm", "Do you want to dispense this selection?") == "yes":
+                pourFunc(event=confirm_pour_func)
+            else:
+                tk.messagebox.showinfo("Selection", "Make a Selection")
 
         def pourFunc(event):
             # python side
@@ -388,9 +374,6 @@ class p3(tk.Frame):  # Mixed drink menu
             for i in range(6):
                 if drinkName == recipeArray[0][i]:
                     drinkIngredients = recipeArray[1][i]
-            currentOrder = '\n' + str(drinkName) + ',' + str(drinkIngredients)
-            userData.write(currentOrder)
-            userData.close()
             print('Drink ingredients:' + str(drinkIngredients))
 
             # arduino1 side
@@ -439,6 +422,7 @@ class p3(tk.Frame):  # Mixed drink menu
             while data != 'Done':
                 data = arduino.readline().decode('utf-8').rstrip()
                 print(data)
+                controller.show_frame(p1)
 
             if data == 'Done':
                 arduino.close()
@@ -446,27 +430,26 @@ class p3(tk.Frame):  # Mixed drink menu
 
 
 class p4(tk.Frame):  # Settings
-    def __init__(self, *args, **kwargs):
-        tk.Frame.__init__(self, *args, **kwargs)
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent, bg='gray24')
         mainHeaderFont = tkFont.Font(family='Bell Gothic Std Light', size=26)
         headerFont = tkFont.Font(family='Bell Gothic Std Light', size=26)
         fatFingerFont = tkFont.Font(family='Bell Gothic Std Light', size=15)
-        backtoMenu = tk.Button(self, text="← Back to Main Menu", font=fatFingerFont, bg='gray35', fg='gray99',
-                               command=args[1].lift)
+
+        backtoMenu = ttk.Button(self, text="← Back to Main Menu", command=lambda: controller.show_frame(p1))
         backtoMenu.place(x=0, y=0, height=60, width=225)
-        label = tk.Label(self, text="Settings", font=headerFont, bg='gray24', fg='gray99')
+        label = ttk.Label(self, text="Settings", font=headerFont, background='gray24', foreground='gray99')
         label.pack(side="top", anchor="n")
 
-        # fillStatus = tk.Frame(self, bg='WHITE')
-        # fillStatus.place(relx=0.25, rely=0.25, height = 300 , width = 512)
-        fillStatus = tk.Label(self, text="Bottle Fill Status", font=headerFont, bg='gray24', fg='gray99').place(x=325,
-                                                                                                                rely=0.2,
-                                                                                                                width=374)
+        fillStatus = ttk.Label(self, text="Bottle Fill Status", font=headerFont, background='gray24', foreground='gray99')
+        fillStatus.place(x=325, rely=0.2, width=374)
+
         self.emptyBottleIMG = ImageTk.PhotoImage(Image.open('bottle_empty.png'))
         self.lowBottleIMG = ImageTk.PhotoImage(Image.open('bottle_low.png'))
         self.halfBottleIMG = ImageTk.PhotoImage(Image.open('bottle_half.png'))
         self.highBottleIMG = ImageTk.PhotoImage(Image.open('bottle_high.png'))
         self.fullBottleIMG = ImageTk.PhotoImage(Image.open('bottle_full.png'))
+
         bottlePlacerX = 158
 
         global settingsUpdate
@@ -497,52 +480,49 @@ class p4(tk.Frame):  # Settings
             inventory.write(str1.join(totalStatus))
             inventory.close()
 
-            self.bottle1Fill = tk.Label(self, image=self.fillImagePlacer[0], bg='gray24').place(x=bottlePlacerX,
-                                                                                                rely=0.3)
-            self.bottle2Fill = tk.Label(self, image=self.fillImagePlacer[1], bg='gray24').place(x=bottlePlacerX + 118,
-                                                                                                rely=0.3)
-            self.bottle3Fill = tk.Label(self, image=self.fillImagePlacer[2], bg='gray24').place(
-                x=bottlePlacerX + (118 * 2), rely=0.3)
-            self.bottle4Fill = tk.Label(self, image=self.fillImagePlacer[3], bg='gray24').place(
-                x=bottlePlacerX + (118 * 3), rely=0.3)
-            self.bottle5Fill = tk.Label(self, image=self.fillImagePlacer[4], bg='gray24').place(
-                x=bottlePlacerX + (118 * 4), rely=0.3)
-            self.bottle6Fill = tk.Label(self, image=self.fillImagePlacer[5], bg='gray24').place(
-                x=bottlePlacerX + (118 * 5), rely=0.3)
+            self.bottle1Fill = ttk.Label(self, image=self.fillImagePlacer[0], background='gray24')
+            self.bottle1Fill.place(x=bottlePlacerX, rely=0.3)
+            self.bottle2Fill = ttk.Label(self, image=self.fillImagePlacer[1], background='gray24')
+            self.bottle2Fill.place(x=bottlePlacerX + 118, rely=0.3)
+            self.bottle3Fill = ttk.Label(self, image=self.fillImagePlacer[2], background='gray24')
+            self.bottle3Fill.place(x=bottlePlacerX + (118 * 2), rely=0.3)
+            self.bottle4Fill = ttk.Label(self, image=self.fillImagePlacer[3], background='gray24')
+            self.bottle4Fill.place(x=bottlePlacerX + (118 * 3), rely=0.3)
+            self.bottle5Fill = ttk.Label(self, image=self.fillImagePlacer[4], background='gray24')
+            self.bottle5Fill.place(x=bottlePlacerX + (118 * 4), rely=0.3)
+            self.bottle6Fill = ttk.Label(self, image=self.fillImagePlacer[5], background='gray24')
+            self.bottle6Fill.place(x=bottlePlacerX + (118 * 5), rely=0.3)
 
-            bottle1desc = tk.Label(self, text="Content:\n" + totalStatus[1] + "\nFill Status: " + totalStatus[3] + "%",
-                                   bg='gray24', fg='gray99').place(x=bottlePlacerX + 25, rely=0.65)
-            bottle2desc = tk.Label(self, text="Content:\n" + totalStatus[4] + "\nFill Status: " + totalStatus[6] + "%",
-                                   bg='gray24', fg='gray99').place(x=bottlePlacerX + 25 + 118, rely=0.65)
-            bottle3desc = tk.Label(self, text="Content:\n" + totalStatus[7] + "\nFill Status: " + totalStatus[9] + "%",
-                                   bg='gray24', fg='gray99').place(x=bottlePlacerX + 25 + (118 * 2), rely=0.65)
-            bottle4desc = tk.Label(self,
-                                   text="Content:\n" + totalStatus[10] + "\nFill Status: " + totalStatus[12] + "%",
-                                   bg='gray24', fg='gray99').place(x=bottlePlacerX + 25 + (118 * 3), rely=0.65)
-            bottle5desc = tk.Label(self,
-                                   text="Content:\n" + totalStatus[13] + "\nFill Status: " + totalStatus[15] + "%",
-                                   bg='gray24', fg='gray99').place(x=bottlePlacerX + 25 + (118 * 4), rely=0.65)
-            bottle6desc = tk.Label(self,
-                                   text="Content:\n" + totalStatus[16] + "\nFill Status: " + totalStatus[18] + "%",
-                                   bg='gray24', fg='gray99').place(x=bottlePlacerX + 25 + (118 * 5), rely=0.65)
+            bottle1desc = ttk.Label(self, text="Content:\n" + totalStatus[1] + "\nFill Status: " + totalStatus[3] + "%", background='gray24', foreground='gray99')
+            bottle1desc.place(x=bottlePlacerX + 25, rely=0.65)
+            bottle2desc = ttk.Label(self, text="Content:\n" + totalStatus[4] + "\nFill Status: " + totalStatus[6] + "%", background='gray24', foreground='gray99')
+            bottle2desc.place(x=bottlePlacerX + 25 + 118, rely=0.65)
+            bottle3desc = ttk.Label(self, text="Content:\n" + totalStatus[7] + "\nFill Status: " + totalStatus[9] + "%", background='gray24', foreground='gray99')
+            bottle3desc.place(x=bottlePlacerX + 25 + (118 * 2), rely=0.65)
+            bottle4desc = ttk.Label(self, text="Content:\n" + totalStatus[10] + "\nFill Status: " + totalStatus[12] + "%", background='gray24', foreground='gray99')
+            bottle4desc.place(x=bottlePlacerX + 25 + (118 * 3), rely=0.65)
+            bottle5desc = ttk.Label(self, text="Content:\n" + totalStatus[13] + "\nFill Status: " + totalStatus[15] + "%", background='gray24', foreground='gray99')
+            bottle5desc.place(x=bottlePlacerX + 25 + (118 * 4), rely=0.65)
+            bottle6desc = ttk.Label(self, text="Content:\n" + totalStatus[16] + "\nFill Status: " + totalStatus[18] + "%", background='gray24', foreground='gray99')
+            bottle6desc.place(x=bottlePlacerX + 25 + (118 * 5), rely=0.65)
 
-        refresh = tk.Button(self, text="Refresh", font=fatFingerFont, bg='gray35', fg='gray99')
-        refresh.bind("<ButtonRelease>", settingsUpdate)
-        refresh.pack(anchor="ne")
+        refresh = ttk.Button(self, text="Refresh", command=lambda: settingsUpdate())
+        refresh.place(x=1, y=1)
 
 
 class p5(tk.Frame):  # priming menu
-    def __init__(self, *args, **kwargs):
-        tk.Frame.__init__(self, *args, **kwargs)
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent, bg='gray24')
         headerFont = tkFont.Font(family='Bell Gothic Std Light', size=26)
         fatFingerFont = tkFont.Font(family='Bell Gothic Std Light', size=15)
-        backSettings = tk.Button(self, text="← Back to Settings", font=fatFingerFont, bg='gray35', fg='gray99',
-                                 command=args[1].lift).place(x=0, y=0, height=60, width=225)
 
-        primemenuheader1 = tk.Label(self, text="What is Pump Priming?", font=headerFont, bg='gray24',
-                                    fg='gray99').place(relx=(512 - 200) / 1024, rely=0.025, width=400)
-        primemenuheader2 = tk.Label(self, text="Priming Instructions:", font=headerFont, bg='gray24',
-                                    fg='gray99').place(relx=(512 - 175) / 1024, rely=0.475, width=350)
+        backSettings = ttk.Button(self, text="← Back to Settings", command=lambda: controller.show_frame(p4))
+        backSettings.place(x=0, y=0, height=60, width=225)
+
+        primemenuheader1 = ttk.Label(self, text="What is Pump Priming?", font=headerFont, background='gray24', foreground='gray99')
+        primemenuheader1.place(relx=(512 - 200) / 1024, rely=0.025, width=400)
+        primemenuheader2 = ttk.Label(self, text="Priming Instructions:", font=headerFont, background='gray24', foreground='gray99')
+        primemenuheader2.place(relx=(512 - 175) / 1024, rely=0.475, width=350)
 
         primeInstructText1 = "Our pumps use the principle of a vaccuum to move your ingredients without contamination.\n\n" \
                              "The process of priming clears any remaining liquid from the pump lines and preps them\n\nwith your new ingredient selection. " \
@@ -553,35 +533,36 @@ class p5(tk.Frame):  # priming menu
                              "With the new bottle installed press 'PRIME and select the bottle\n\nlocation. An LED indicator will light up " \
                              "to confirm your selection. This process will\n\ntake approximately xx seconds and the LED indicator will turn off when it is done."
 
-        primeInstruct = tk.Label(self, text=primeInstructText1, font=fatFingerFont, bg='gray24', fg='gray99',
-                                 justify=tk.LEFT).place(relx=0.075, rely=0.15)
-        primeInstruct2 = tk.Label(self, text=primeInstructText2, font=fatFingerFont, bg='gray24', fg='gray99',
-                                  justify=tk.LEFT).place(relx=0.075, rely=0.6)
+        primeInstruct = tk.Label(self, text=primeInstructText1, font=fatFingerFont, bg='gray24', fg='gray99', justify=tk.LEFT)
+        primeInstruct.place(relx=0.075, rely=0.15)
+        primeInstruct2 = tk.Label(self, text=primeInstructText2, font=fatFingerFont, bg='gray24', fg='gray99', justify=tk.LEFT)
+        primeInstruct2.place(relx=0.075, rely=0.6)
 
 
 class p10(tk.Frame):  # help menu
-    def __init__(self, *args, **kwargs):
-        tk.Frame.__init__(self, *args, **kwargs, bg='gray24')
-        headerFont = tkFont.Font(family='Bell Gothic Std Light', size=16)
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent, bg='gray24')
+
+        headerFont = tkFont.Font(family='Bell Gothic Std Light', size=18)
         fatFingerFont = tkFont.Font(family='Bell Gothic Std Light', size=16)
         welcomeFont = tkFont.Font(family='Bell Gothic Std Light', size=42, weight='bold')
 
-        backtoMenu = tk.Button(self, text="← Back to Main Menu", font=fatFingerFont, bg='gray35', fg='gray99',
-                               command=args[1].lift).place(x=0, y=0, height=70, width=240)
+        backtoMenu = ttk.Button(self, text="← Back to Main Menu", command=lambda: controller.show_frame(p1))
+        backtoMenu.place(x=0, y=0, height=70, width=240)
 
         instructionList = "Welcome to BotTender!\n\nTo get started with your drink, click one of the " + \
-                          "buttons below:\nThe Shots button will allow you " + \
-                          "to dispense individual shots\nThe Mixed Drinks " + \
-                          "button will allow you to choose from one of our " + \
-                          "pre-set recipes\nbased on the options you have " + \
-                          "loaded your BotTender with.\nThere are options to " + \
-                          "sort by ingredient or search for your favorite recipe\n" + \
-                          "The settings menu will show you the fill status of " + \
-                          'your containers and\nallow you to prime the pumps ' + \
+                          "two buttons \nfor Custom/Shots or Mixed Drinks:\n\n    -The Custom Shots button will allow you " + \
+                          "to dispense individual shots\n\n    -The Mixed Drinks " + \
+                          "button will allow you to choose from one of our \n" + \
+                          "    pre-set recipes based on the options you have " + \
+                          "loaded your BotTender with.\n\n    -There are options to " + \
+                          "sort by ingredient or search for your favorite recipe\n\n" + \
+                          "    -The settings menu will show you the fill status of " + \
+                          'your containers and\n    allow you to prime the pumps ' + \
                           "when replacing your containers."
 
-        helpInstructions = tk.Label(self, text=instructionList, font=headerFont, bg='gray24', fg='gray99')
-        helpInstructions.place(relx=0.075, rely=0.25)
+        helpInstructions = ttk.Label(self, text=instructionList, font=headerFont, background='gray24', foreground='gray99')
+        helpInstructions.place(relx=0.09, rely=0.2)
 
 
 app = MainView()

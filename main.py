@@ -1,25 +1,36 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, Canvas
 import tkinter.font as tkFont
 from tkinter import messagebox
 from PIL import Image, ImageTk  # pip install pillow
 import serial
 import time
-import subprocess
+import csv
 
 global ingredientsArray
-ingredientsArray = [["Vodka", "Rum", "Triple sec", "Coke", "Cranberry", "Lime", "Whiskey"],
-                    ["1000000", "0100000", "0010000", "0001000", "0000100", "0000010", "0000001"]]
+ingredientsArray = [["vodka", "rum", "coke", "cran", "trip_sec", "lime"],
+                    ["1000000", "0100000", "0010000", "0001000", "0000100", "0000010"]]
+
+ingredient_options = ["Vodka", "Rum", "Coke", "Cranberry", "Triple Sec", "Lime"]
 
 global recipeArray
-recipeArray = [["Cuba Libre", "Harpoon", "Cape Codder", "Kamikaze", "Vodka Gimlet", "Cranberry Vodka"],
-               ["0101010", "1010110", "1000110", "1010010", "1000010", "1000100"],
-               ["0\n", "60\n", "38\n", "34\n", "50\n", "47\n"],  # vodka
-               ["47\n", "0\n", "0\n", "0\n", "0\n", "0\n"],  # rum
-               ["0\n", "20\n", "0\n", "33\n", "0\n", "0\n"],  # triple sec
-               ["47\n", "0\n", "0\n", "0\n", "0\n", "0\n"],  # coke
-               ["0\n", "10\n", "57\n", "0\n", "0\n", "57\n"],  # cran juice
-               ["6\n", "10\n", "5\n", "33\n", "50\n", "0\n"]]  # lime juice
+recipeArray =   [["Cuba Libre", "Harpoon", "Cape Codder", "Kamikaze", "Vodka Gimlet", "Cranberry Vodka"],
+                ["0011010", "1101100", "1001100", "1101000", "1001000", "1000100"],
+                ["0\n", "60\n", "38\n", "34\n", "50\n", "47\n"],     # vodka
+                ["47\n", "0\n", "0\n", "0\n", "0\n", "0\n"],         # rum
+                ["47\n", "0\n", "0\n", "0\n", "0\n", "0\n"],         # coke
+                ["0\n", "10\n", "57\n", "0\n", "0\n", "57\n"],       # cran juice
+                ["0\n", "20\n", "0\n", "33\n", "0\n", "0\n"],        # triple sec
+                ["6\n", "10\n", "5\n", "33\n", "50\n", "0\n"]]       # lime juice
+
+inv_file = 'inventory.csv'
+
+inv = open(inv_file, 'r')
+csvreader = csv.reader(inv)
+inv_now = next(csvreader)
+inv.close()
+for x in range(6):
+    ingredientsArray[0][x] = inv_now[x]
 
 arduino = serial.Serial()
 arduino.port = 'COM4'
@@ -94,14 +105,14 @@ class p2(tk.Frame):  # Custom/Shots
         label = ttk.Label(self, text="Shots/Custom Pour Menu", font=fatFingerFont, background='gray24', foreground='gray99')
         label.place(relx=0.33, rely=.05, height=60)
 
-        backtoMenu = ttk.Button(self, text="← Back to Main Menu", command=lambda: controller.show_frame(p1))
+        backtoMenu = ttk.Button(self, text="← Back to Main Menu", command=lambda: [resetCount(), controller.show_frame(p1)])
         backtoMenu.place(x=0, y=0, height=60, width=225)
 
         global customCount
         customCount = [0] * 6
 
         def resetCount():
-            print("reset")
+            #print("reset")
             i = 0
             for i in range(6):
                 if customCount[i] > 0:
@@ -154,8 +165,8 @@ class p2(tk.Frame):  # Custom/Shots
             for i in range(6):
                 currentOrder[i] = str(customCount[i] * 100)
                 currentOrder[i] = currentOrder[i] + newline
-                print("Current Order:")
-                print(currentOrder[i])
+                #print("Current Order:")
+                #print(currentOrder[i])
 
             arduino.flush()
             arduino.write("custom\n".encode())
@@ -198,15 +209,16 @@ class p2(tk.Frame):  # Custom/Shots
             while data != 'Done':
                 data = arduino.readline().decode('utf-8').rstrip()
                 print(data)
+                resetCount()
                 controller.show_frame(p1)
 
-        custom_pour = tk.Button(self, text="Pour Custom Selection", font=fatFingerFont, command=lambda: confirm_pour())
-        custom_pour.place(relx=.18, rely=.85, height=70, width=380)
+        custom_pour = tk.Button(self, text="Pour Custom Selection", font=fatFingerFont, bg='gray50', command=lambda: confirm_pour())
+        custom_pour.place(relx=.16, rely=.85, height=70, width=420)
 
-        resetCounterButton = tk.Button(self, text="Reset Count", font=fatFingerFont, command=lambda: resetCount())
-        resetCounterButton.place(relx=.63, rely=.85, height=70, width=220)
+        resetCounterButton = tk.Button(self, text="Reset Count", font=fatFingerFont, bg='gray50', command=lambda: resetCount())
+        resetCounterButton.place(relx=.63, rely=.85, height=70, width=240)
 
-        shotOption1 = ttk.Label(self, text="Vodka", font=fatFingerFont, background='gray24', foreground='gray99')
+        shotOption1 = ttk.Label(self, text=ingredientsArray[0][0], font=fatFingerFont, background='gray24', foreground='gray99')
         shotOption1.place(relx=125 / 1024, rely=0.17)
         shotCounter1 = ttk.Label(self, text="0", font=fatFingerFont, background='gray24', foreground='gray99', wraplength=10)
         shotCounter1.place(height=50, width=50, relx=125 / 1024, rely=0.24)
@@ -217,7 +229,7 @@ class p2(tk.Frame):  # Custom/Shots
         optSub1 = tk.Button(self, text="-", font=fatFingerFont, command=lambda: lessShot(shotCounter1))
         optSub1.place(height=80, width=80, relx=420 / 1024, rely=0.19)
 
-        shotOption2 = ttk.Label(self, text="Rum", font=fatFingerFont, background='gray24', foreground='gray99')
+        shotOption2 = ttk.Label(self, text=ingredientsArray[0][1], font=fatFingerFont, background='gray24', foreground='gray99')
         shotOption2.place(relx=125 / 1024,  rely=0.4)
         shotCounter2 = ttk.Label(self, text=0, font=fatFingerFont, background='gray24', foreground='gray99', wraplength=11)
         shotCounter2.place(height=50, width=50, relx=125 / 1024, rely=0.47)
@@ -228,7 +240,7 @@ class p2(tk.Frame):  # Custom/Shots
         optSub2 = tk.Button(self, text="-", font=fatFingerFont, command=lambda: lessShot(shotCounter2))
         optSub2.place(height=80, width=80, relx=420 / 1024, rely=0.415)
 
-        shotOption3 = ttk.Label(self, text="Triple Sec", font=fatFingerFont, background='gray24', foreground='gray99')
+        shotOption3 = ttk.Label(self, text=ingredientsArray[0][2], font=fatFingerFont, background='gray24', foreground='gray99')
         shotOption3.place(relx=125 / 1024, rely=0.63)
         shotCounter3 = ttk.Label(self, text=0, font=fatFingerFont, background='gray24', foreground='gray99', wraplength=12)
         shotCounter3.place(height=50, width=50, relx=125 / 1024, rely=0.7)
@@ -239,38 +251,38 @@ class p2(tk.Frame):  # Custom/Shots
         optSub3 = tk.Button(self, text="-", font=fatFingerFont, command=lambda: lessShot(shotCounter3))
         optSub3.place(height=80, width=80, relx=420 / 1024, rely=0.65)
 
-        shotOption4 = ttk.Label(self, text="Coke", font=fatFingerFont, background='gray24', foreground='gray99')
+        shotOption4 = ttk.Label(self, text=ingredientsArray[0][3], font=fatFingerFont, background='gray24', foreground='gray99')
         shotOption4.place(relx=575 / 1024, rely=0.17)
         shotCounter4 = ttk.Label(self, text=0, font=fatFingerFont, background='gray24', foreground='gray99', wraplength=13)
         shotCounter4.place(height=50, width=50, relx=575 / 1024, rely=0.24)
         ounceLabel4 = ttk.Label(self, text="(oz)", font=fatFingerFont, background='gray24', foreground='gray99')
         ounceLabel4.place(height=50, width=70, relx=615 / 1024, rely=0.24)
         optAdd4 = tk.Button(self, text="+", font=fatFingerFont, command=lambda: addShot(shotCounter4))
-        optAdd4.place(height=80, width=80, relx=750 / 1024, rely=0.19)
+        optAdd4.place(height=80, width=80, relx=765 / 1024, rely=0.19)
         optSub4 = tk.Button(self, text="-", font=fatFingerFont, command=lambda: lessShot(shotCounter4))
-        optSub4.place(height=80, width=80, relx=850 / 1024, rely=0.19)
+        optSub4.place(height=80, width=80, relx=865 / 1024, rely=0.19)
 
-        shotOption5 = ttk.Label(self, text="Cranberry", font=fatFingerFont, background='gray24', foreground='gray99')
+        shotOption5 = ttk.Label(self, text=ingredientsArray[0][4], font=fatFingerFont, background='gray24', foreground='gray99')
         shotOption5.place(relx=575 / 1024, rely=0.4)
         shotCounter5 = ttk.Label(self, text=0, font=fatFingerFont, background='gray24', foreground='gray99', wraplength=14)
         shotCounter5.place(height=50, width=50, relx=575 / 1024, rely=0.47)
         ounceLabel5 = ttk.Label(self, text="(oz)", font=fatFingerFont, background='gray24', foreground='gray99')
         ounceLabel5.place(height=50, width=70, relx=615 / 1024, rely=0.47)
         optAdd5 = tk.Button(self, text="+", font=fatFingerFont, command=lambda: addShot(shotCounter5))
-        optAdd5.place(height=80, width=80, relx=750 / 1024, rely=0.415)
+        optAdd5.place(height=80, width=80, relx=765 / 1024, rely=0.415)
         optSub5 = tk.Button(self, text="-", font=fatFingerFont, command=lambda: lessShot(shotCounter5))
-        optSub5.place(height=80, width=80, relx=850 / 1024, rely=0.415)
+        optSub5.place(height=80, width=80, relx=865 / 1024, rely=0.415)
 
-        shotOption6 = ttk.Label(self, text="Lime", font=fatFingerFont, background='gray24', foreground='gray99')
+        shotOption6 = ttk.Label(self, text=ingredientsArray[0][5], font=fatFingerFont, background='gray24', foreground='gray99')
         shotOption6.place(relx=575 / 1024, rely=0.63)
         shotCounter6 = ttk.Label(self, text=0, font=fatFingerFont, background='gray24', foreground='gray99', wraplength=15)
         shotCounter6.place(height=50, width=50, relx=575 / 1024, rely=0.7)
         ounceLabel6 = ttk.Label(self, text="(oz)", font=fatFingerFont, background='gray24', foreground='gray99')
         ounceLabel6.place(height=50, width=70, relx=615 / 1024, rely=0.7)
         optAdd6 = tk.Button(self, text="+", font=fatFingerFont, command=lambda: addShot(shotCounter6))
-        optAdd6.place(height=80, width=80, relx=750 / 1024, rely=0.65)
+        optAdd6.place(height=80, width=80, relx=765 / 1024, rely=0.65)
         optSub6 = tk.Button(self, text="-", font=fatFingerFont, command=lambda: lessShot(shotCounter6))
-        optSub6.place(height=80, width=80, relx=850 / 1024, rely=0.65)
+        optSub6.place(height=80, width=80, relx=865 / 1024, rely=0.65)
 
 
 class p3(tk.Frame):  # Mixed drink menu
@@ -281,9 +293,6 @@ class p3(tk.Frame):  # Mixed drink menu
         headerFont = tkFont.Font(family='Bell Gothic Std Light', size=20)
         fatFingerFont = tkFont.Font(family='Bell Gothic Std Light', size=26)
 
-        userFile = 'userRecents' + '.txt'
-        userData = open(userFile, 'a+')
-
         backtoMenu = ttk.Button(self, text="← Back to Main Menu", command=lambda: controller.show_frame(p1))
         backtoMenu.place(relx=0, rely=0, height=60, width=225)
 
@@ -291,14 +300,39 @@ class p3(tk.Frame):  # Mixed drink menu
         label.place(relx=400 / 1024, rely=.06)
 
         recipeScroll = ttk.Scrollbar(self)
-        recipeScroll.place(height=420, width=25, relx=600 / 1024, rely=130 / 600)
+        recipeScroll.place(height=420, width=25, relx=610 / 1024, rely=130 / 600)
         recipeList = tk.Listbox(self, yscrollcommand=recipeScroll.set, font=headerFont)
         for i in range(6):
             recipeList.insert(i, (recipeArray[0][i]))
-        recipeList.place(height=420, width=250, relx=350 / 1024, rely=130 / 600)
+        recipeList.place(height=420, width=250, relx=360 / 1024, rely=130 / 600)
         recipeScroll.config(command=recipeList.yview)
 
         ingredientsDet = ["", "", "", "", "", "", ""]
+        cb_labels = [["0", "0", "0", "0", "0", "0"],
+                    ["", "", "", "", "", ""]]
+
+        for m in range(6):
+            if ingredientsArray[0][m] not in cb_labels[0]:
+                cb_labels[0][m] = ingredientsArray[0][m]
+
+        cb_labels[0].sort(reverse=True)
+        print(cb_labels[0])
+        for e in range(6):
+            if cb_labels[0][e] == 'Vodka':
+                cb_labels[1][e] = "1000000"
+            elif cb_labels[0][e] == "Triple Sec":
+                cb_labels[1][e] = "0100000"
+            elif cb_labels[0][e] == "Rum":
+                cb_labels[1][e] = "0010000"
+            elif cb_labels[0][e] == "Lime":
+                cb_labels[1][e] = "0001000"
+            elif cb_labels[0][e] == "Cranberry":
+                cb_labels[1][e] = "0000100"
+            elif cb_labels[0][e] == "Coke":
+                cb_labels[1][e] = "0000010"
+
+
+        #print(cb_labels)
 
         def onSelect(evt):
             w = evt.widget
@@ -313,51 +347,70 @@ class p3(tk.Frame):  # Mixed drink menu
                     ingredientCalc = list(recipeArray[1][i])
                     for j in range(7):
                         if int(ingredientCalc[j]) == 1:
-                            ingredientsDet[j] = ingredientsArray[0][j]
+                            ingredientsDet[j] = ingredient_options[j]
                             drinkDesc.insert(tk.END, str(ingredientsDet[j]) + "\n")
+
+        def resetAll():
+            self.destroy()  # destroys the canvas and therefore all of its child-widgets too
+
+        def clear():
+            checkSort()
 
         drinkDesc = tk.Text(self, height=13.4, font=headerFont)
         drinkDesc.place(relx=680 / 1024, rely=130 / 600, height=300, width=300)
         recipeList.bind('<<ListboxSelect>>', onSelect)
 
         checkSortSum = 000000
-        CheckVar1 = tk.IntVar()
-        CheckVar2 = tk.IntVar()
-        CheckVar3 = tk.IntVar()
-        CheckVar4 = tk.IntVar()
-        CheckVar5 = tk.IntVar()
-        CheckVar6 = tk.IntVar()
-        checkVarsList = [CheckVar1, CheckVar2, CheckVar3, CheckVar4, CheckVar5, CheckVar6]
+        rvar = tk.IntVar()
 
         def checkSort():
             for k in range(6):
                 recipeList.delete(k)
                 recipeList.insert(k, (recipeArray[0][k]))
-            for i in range(6):
-                if checkVarsList[i].get() == 1:
-                    for j in reversed(range(6)):
-                        if list(ingredientsArray[1][i])[i] != list(recipeArray[1][j])[i]:
-                            recipeList.delete(j)
+            i = rvar.get()
+            for j in reversed(range(6)):
+                text = str(i) + ", " + str(j) + ": " + str(list(cb_labels[1][i])[i]) + ", " + str(
+                    list(recipeArray[1][j])[i])
+                print(text)
+                print(list(cb_labels[1][i]))
+                print(list(recipeArray[1][j]))
+                if list(cb_labels[1][i])[i] != list(recipeArray[1][j])[i]:
+                    recipeList.delete(j)
 
         sortHeight = 15
 
-        C1 = tk.Checkbutton(self, text=ingredientsArray[0][0], font=fatFingerFont, background='gray24', foreground='gray99', indicatoron=0, variable=CheckVar1, onvalue=1, offvalue=0, command=lambda: checkSort())
-        C2 = tk.Checkbutton(self, text=ingredientsArray[0][1], font=fatFingerFont, background='gray24', foreground='gray99', indicatoron=0, variable=CheckVar2, onvalue=1, offvalue=0, command=lambda: checkSort())
-        C3 = tk.Checkbutton(self, text=ingredientsArray[0][2], font=fatFingerFont, background='gray24', foreground='gray99', indicatoron=0, variable=CheckVar3, onvalue=1, offvalue=0, command=lambda: checkSort())
-        C4 = tk.Checkbutton(self, text=ingredientsArray[0][3], font=fatFingerFont, background='gray24', foreground='gray99', indicatoron=0, variable=CheckVar4, onvalue=1, offvalue=0, command=lambda: checkSort())
-        C5 = tk.Checkbutton(self, text=ingredientsArray[0][4], font=fatFingerFont, background='gray24', foreground='gray99', indicatoron=0, variable=CheckVar5, onvalue=1, offvalue=0, command=lambda: checkSort())
-        C6 = tk.Checkbutton(self, text=ingredientsArray[0][5], font=fatFingerFont, background='gray24', foreground='gray99', indicatoron=0, variable=CheckVar6, onvalue=1, offvalue=0, command=lambda: checkSort())
-        C1.place(width=265, height=40, relx=.045, rely=(sortHeight + 170) / 600)
-        C2.place(width=265, height=40, relx=.045, rely=(sortHeight + 230) / 600)
-        C3.place(width=265, height=40, relx=.045, rely=(sortHeight + 290) / 600)
-        C4.place(width=265, height=40, relx=.045, rely=(sortHeight + 350) / 600)
-        C5.place(width=265, height=40, relx=.045, rely=(sortHeight + 410) / 600)
-        C6.place(width=265, height=40, relx=.045, rely=(sortHeight + 470) / 600)
+        def set_cb():
+            if cb_labels[0][0] != "0":
+                C1 = tk.Radiobutton(self, text=cb_labels[0][0], font=fatFingerFont, bg='gray24', value=0,
+                                    fg='gray99', variable=rvar, command=lambda: checkSort())
+                C1.place(width=265, height=40, relx=.04, rely=(sortHeight + 170) / 600)
+            if cb_labels[0][1] != "0":
+                C2 = tk.Radiobutton(self, text=cb_labels[0][1], font=fatFingerFont, bg='gray24', value=1,
+                                    fg='gray99', variable=rvar, command=lambda: checkSort())
+                C2.place(width=265, height=40, relx=.04, rely=(sortHeight + 230) / 600)
+            if cb_labels[0][2] != "":
+                C3 = tk.Radiobutton(self, text=cb_labels[0][2], font=fatFingerFont, bg='gray24', value=2,
+                                    fg='gray99', variable=rvar, command=lambda: checkSort())
+                C3.place(width=265, height=40, relx=.04, rely=(sortHeight + 290) / 600)
+            if cb_labels[0][3] != "0":
+                C4 = tk.Radiobutton(self, text=cb_labels[0][3], font=fatFingerFont, bg='gray24', value=3,
+                                    fg='gray99', variable=rvar, command=lambda: checkSort())
+                C4.place(width=265, height=40, relx=.04, rely=(sortHeight + 350) / 600)
+            if cb_labels[0][4] != "0":
+                C5 = tk.Radiobutton(self, text=cb_labels[0][4], font=fatFingerFont, bg='gray24', value=4,
+                                    fg='gray99', variable=rvar, command=lambda: checkSort())
+                C5.place(width=265, height=40, relx=.04, rely=(sortHeight + 410) / 600)
+            if cb_labels[0][5] != "0":
+                C6 = tk.Radiobutton(self, text=cb_labels[0][5], font=fatFingerFont, bg='gray24', value=5,
+                                    fg='gray99', variable=rvar, command=lambda: checkSort())
+                C6.place(width=265, height=40, relx=.045, rely=(sortHeight + 470) / 600)
+
+        set_cb()
 
         recipeSort = ttk.Label(self, text='Sort by Ingredient:', font=fatFingerFont, background='gray24', foreground='gray99')
-        recipeSort.place(relx=25 / 1024, rely=(sortHeight + 110) / 600)
+        recipeSort.place(relx=35 / 1024, rely=(sortHeight + 110) / 600)
 
-        pour = tk.Button(self, text="Pour Selection", font=fatFingerFont, command=lambda: confirm_pour_func())
+        pour = tk.Button(self, text="Pour Selection", font=fatFingerFont, bg='gray50', command=lambda: confirm_pour_func())
         pour.place(relx=680/1024, rely=470/600, height=80, width=300)
 
 
@@ -387,7 +440,6 @@ class p3(tk.Frame):  # Mixed drink menu
                 data = arduino.readline().decode('utf-8').rstrip()
                 print(data)
                 arduino.write("selected\n".encode())
-
             if data == 'Vodka':
                 arduino.write(recipeArray[2][index1].encode('utf-8'))
                 data = arduino.readline().decode('utf-8').rstrip()
@@ -422,6 +474,8 @@ class p3(tk.Frame):  # Mixed drink menu
             while data != 'Done':
                 data = arduino.readline().decode('utf-8').rstrip()
                 print(data)
+                clear()
+                #resetAll()
                 controller.show_frame(p1)
 
             if data == 'Done':
@@ -432,134 +486,204 @@ class p3(tk.Frame):  # Mixed drink menu
 class p4(tk.Frame):  # Settings
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent, bg='gray24')
+        self.settingButton = ImageTk.PhotoImage(Image.open('settingButton.png').resize((75, 75), Image.ANTIALIAS))
         mainHeaderFont = tkFont.Font(family='Bell Gothic Std Light', size=26)
-        headerFont = tkFont.Font(family='Bell Gothic Std Light', size=26)
-        fatFingerFont = tkFont.Font(family='Bell Gothic Std Light', size=15)
-
+        headerFont = tkFont.Font(family='Bell Gothic Std Light', size=40)
+        fatFingerFont = tkFont.Font(family='Bell Gothic Std Light', size=16)
+        label = tk.Label(self, text="Settings", font=headerFont, image=self.settingButton, compound=tk.LEFT, bg='gray24', fg='gray99')
+        label.place(relx=160/1024, rely=150/600)
+        read_me = "Settings menu allows access to:" \
+                  "\n\n    -The INVENTORY MENU: used when replacing \n    inventory and priming the pumps." \
+                  "\n\n    -The LED MENU: used to modify the lighting \n    scheme of BotTender."
+        read_me_settings = tk.Label(self, text=read_me, font=fatFingerFont, background='gray24', foreground='gray99')
+        read_me_settings.place(relx=70/1024, rely=285/600)
         backtoMenu = ttk.Button(self, text="← Back to Main Menu", command=lambda: controller.show_frame(p1))
         backtoMenu.place(x=0, y=0, height=60, width=225)
-        label = ttk.Label(self, text="Settings", font=headerFont, background='gray24', foreground='gray99')
-        label.pack(side="top", anchor="n")
-
-        fillStatus = ttk.Label(self, text="Bottle Fill Status", font=headerFont, background='gray24', foreground='gray99')
-        fillStatus.place(x=325, rely=0.2, width=374)
-
-        self.emptyBottleIMG = ImageTk.PhotoImage(Image.open('bottle_empty.png'))
-        self.lowBottleIMG = ImageTk.PhotoImage(Image.open('bottle_low.png'))
-        self.halfBottleIMG = ImageTk.PhotoImage(Image.open('bottle_half.png'))
-        self.highBottleIMG = ImageTk.PhotoImage(Image.open('bottle_high.png'))
-        self.fullBottleIMG = ImageTk.PhotoImage(Image.open('bottle_full.png'))
-
-        bottlePlacerX = 158
-
-        global settingsUpdate
-
-        def settingsUpdate(event):
-            inventory = open('botInventory.txt', "r")
-            totalStatus = inventory.readlines()
-            self.fillStatusImages = [self.emptyBottleIMG, self.lowBottleIMG, self.halfBottleIMG, self.highBottleIMG,
-                                     self.fullBottleIMG]
-            self.fillImagePlacer = [None] * 6
-            for i in range(6):
-                if float(totalStatus[(i + 1) * 3]) >= 80:
-                    self.fillImagePlacer[i] = self.fillStatusImages[4]
-                elif float(totalStatus[(i + 1) * 3]) < 80 and float(totalStatus[(i + 1) * 3]) >= 60:
-                    self.fillImagePlacer[i] = self.fillStatusImages[3]
-                elif float(totalStatus[(i + 1) * 3]) < 60 and float(totalStatus[(i + 1) * 3]) >= 40:
-                    self.fillImagePlacer[i] = self.fillStatusImages[2]
-                elif float(totalStatus[(i + 1) * 3]) < 40 and float(totalStatus[(i + 1) * 3]) >= 20:
-                    self.fillImagePlacer[i] = self.fillStatusImages[1]
-                elif float(totalStatus[(i + 1) * 3]) < 20:
-                    self.fillImagePlacer[i] = self.fillStatusImages[0]
-            inventory.close()
-
-            inventory = open('botInventory.txt', "w")
-            str1 = ''
-            str1.join(totalStatus)
-            print(str1)
-            inventory.write(str1.join(totalStatus))
-            inventory.close()
-
-            self.bottle1Fill = ttk.Label(self, image=self.fillImagePlacer[0], background='gray24')
-            self.bottle1Fill.place(x=bottlePlacerX, rely=0.3)
-            self.bottle2Fill = ttk.Label(self, image=self.fillImagePlacer[1], background='gray24')
-            self.bottle2Fill.place(x=bottlePlacerX + 118, rely=0.3)
-            self.bottle3Fill = ttk.Label(self, image=self.fillImagePlacer[2], background='gray24')
-            self.bottle3Fill.place(x=bottlePlacerX + (118 * 2), rely=0.3)
-            self.bottle4Fill = ttk.Label(self, image=self.fillImagePlacer[3], background='gray24')
-            self.bottle4Fill.place(x=bottlePlacerX + (118 * 3), rely=0.3)
-            self.bottle5Fill = ttk.Label(self, image=self.fillImagePlacer[4], background='gray24')
-            self.bottle5Fill.place(x=bottlePlacerX + (118 * 4), rely=0.3)
-            self.bottle6Fill = ttk.Label(self, image=self.fillImagePlacer[5], background='gray24')
-            self.bottle6Fill.place(x=bottlePlacerX + (118 * 5), rely=0.3)
-
-            bottle1desc = ttk.Label(self, text="Content:\n" + totalStatus[1] + "\nFill Status: " + totalStatus[3] + "%", background='gray24', foreground='gray99')
-            bottle1desc.place(x=bottlePlacerX + 25, rely=0.65)
-            bottle2desc = ttk.Label(self, text="Content:\n" + totalStatus[4] + "\nFill Status: " + totalStatus[6] + "%", background='gray24', foreground='gray99')
-            bottle2desc.place(x=bottlePlacerX + 25 + 118, rely=0.65)
-            bottle3desc = ttk.Label(self, text="Content:\n" + totalStatus[7] + "\nFill Status: " + totalStatus[9] + "%", background='gray24', foreground='gray99')
-            bottle3desc.place(x=bottlePlacerX + 25 + (118 * 2), rely=0.65)
-            bottle4desc = ttk.Label(self, text="Content:\n" + totalStatus[10] + "\nFill Status: " + totalStatus[12] + "%", background='gray24', foreground='gray99')
-            bottle4desc.place(x=bottlePlacerX + 25 + (118 * 3), rely=0.65)
-            bottle5desc = ttk.Label(self, text="Content:\n" + totalStatus[13] + "\nFill Status: " + totalStatus[15] + "%", background='gray24', foreground='gray99')
-            bottle5desc.place(x=bottlePlacerX + 25 + (118 * 4), rely=0.65)
-            bottle6desc = ttk.Label(self, text="Content:\n" + totalStatus[16] + "\nFill Status: " + totalStatus[18] + "%", background='gray24', foreground='gray99')
-            bottle6desc.place(x=bottlePlacerX + 25 + (118 * 5), rely=0.65)
-
-        refresh = ttk.Button(self, text="Refresh", command=lambda: settingsUpdate())
-        refresh.place(x=1, y=1)
+        inventory_menu = tk.Button(self, text="Inventory Menu", font=fatFingerFont, bg='gray50',
+                                   command=lambda: controller.show_frame(p5))
+        inventory_menu.place(relx=650/1024, rely=145/600, height=150, width=250)
+        led_menu = tk.Button(self, text="LED Menu", font=fatFingerFont, bg='gray50') #command=lambda: controller.show_frame(p5)
+        led_menu.place(relx=650 / 1024, rely=345 / 600, height=150, width=250)
 
 
-class p5(tk.Frame):  # priming menu
+class p5(tk.Frame):  # inventory menu
     def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent, bg='gray24')
-        headerFont = tkFont.Font(family='Bell Gothic Std Light', size=26)
-        fatFingerFont = tkFont.Font(family='Bell Gothic Std Light', size=15)
-
+        self.bays = ImageTk.PhotoImage(Image.open('tv_of_bays.png'))
+        tk.Frame.__init__(self, parent, bg='gray28')
+        headerFont = tkFont.Font(family='Bell Gothic Std Light', size=30)
+        fatFingerFont = tkFont.Font(family='Bell Gothic Std Light', size=20)
         backSettings = ttk.Button(self, text="← Back to Settings", command=lambda: controller.show_frame(p4))
         backSettings.place(x=0, y=0, height=60, width=225)
+        bay_view = Canvas(self, bg="gray50", height=400, width=400, highlightthickness=0)
+        bay_view.create_image(200, 200, image=self.bays)
+        bay_view.place(relx=282 / 1024, rely=130 / 600)
+        #self.bay_view = tk.Label(self, image=self.bays)
+        #self.bay_view.place(relx=80 / 1024, rely=128 / 600)
+        inv_header = ttk.Label(self, text="Inventory Control", font=headerFont, background='gray28',
+                                     foreground='gray99')
+        inv_header.place(relx=340 / 1024, rely=40/600, width=400)
+        ingredients = ttk.Label(self, text="Ingredients: Choose one \nfor the selected bays", font=fatFingerFont,
+                                background='gray28', foreground='gray99')
+        ingredients.place(relx=695 / 1024, rely=120/600, width=350)
+        current_inv = ttk.Label(self, text="Current Inventory:", font=fatFingerFont, background='gray28',
+                                     foreground='gray99')
+        current_inv.place(relx=60/1024, rely=120/600)
+        inv_label = {}
+        list_start = 170
+        prime_bay = {}
 
-        primemenuheader1 = ttk.Label(self, text="What is Pump Priming?", font=headerFont, background='gray24', foreground='gray99')
-        primemenuheader1.place(relx=(512 - 200) / 1024, rely=0.025, width=400)
-        primemenuheader2 = ttk.Label(self, text="Priming Instructions:", font=headerFont, background='gray24', foreground='gray99')
-        primemenuheader2.place(relx=(512 - 175) / 1024, rely=0.475, width=350)
+        def set_labels():
+            for x in range(6):
+                #print(str(x) + ingredientsArray[0][x])
+                bottle = "Bay " + str(x + 1) + ": " + ingredientsArray[0][x]
+                inv_label[x] = ttk.Label(self, text="", font=fatFingerFont, background='gray28',
+                                         foreground='gray99')
+                inv_label[x].config(text="")
+                inv_label[x].config(text=bottle)
+                inv_label[x].place(relx=60 / 1024, rely=(list_start + (x * 60)) / 600)
+        set_labels()
 
-        primeInstructText1 = "Our pumps use the principle of a vaccuum to move your ingredients without contamination.\n\n" \
-                             "The process of priming clears any remaining liquid from the pump lines and preps them\n\nwith your new ingredient selection. " \
-                             "This process should be repeated every time a bottle\n\nis replaced to ensure we can deliver your favorite drinks " \
-                             "with optimal speed and quality!"
+        def clear():
+            cb_var1.set(0)
+            cb_var2.set(0)
+            cb_var3.set(0)
+            cb_var4.set(0)
+            cb_var5.set(0)
+            cb_var6.set(0)
 
-        primeInstructText2 = "Before priming the pumps, please place a container below the BotTender nozzle to\n\ncatch excess liquid. " \
-                             "With the new bottle installed press 'PRIME and select the bottle\n\nlocation. An LED indicator will light up " \
-                             "to confirm your selection. This process will\n\ntake approximately xx seconds and the LED indicator will turn off when it is done."
+        def upd_inv_confirm():
+            if messagebox.askquestion("Confirm", "Is there a cup under the dispenser for priming?") == "yes":
+                upd_inv(event=set_inv)
+            else:
+                tk.messagebox.showinfo("Selection", "Make a Selection")
 
-        primeInstruct = tk.Label(self, text=primeInstructText1, font=fatFingerFont, bg='gray24', fg='gray99', justify=tk.LEFT)
-        primeInstruct.place(relx=0.075, rely=0.15)
-        primeInstruct2 = tk.Label(self, text=primeInstructText2, font=fatFingerFont, bg='gray24', fg='gray99', justify=tk.LEFT)
-        primeInstruct2.place(relx=0.075, rely=0.6)
+        def upd_inv(event):
+            inv = open(inv_file, 'w')
+            csvwriter = csv.writer(inv)
+            for t in recipeList.curselection():
+                # print(recipeList.get(t))
+                selected = recipeList.get(t)
+            #print(selected)
+            for n in range(6):
+                #print(cb_vars[n].get())
+                if cb_vars[n].get() == 1:
+                    prime_bay[n] = 1
+                    ingredientsArray[0][n] = selected
+                else:
+                    prime_bay[n] = 0
+
+            csvwriter.writerow(ingredientsArray[0])
+            inv.close()
+            priming = ["", "", "", "", "", ""]
+
+            newline = "\n"
+            for i in range(6):
+                priming[i] = str(prime_bay[i])
+                priming[i] = priming[i] + newline
+
+            arduino.flush()
+            arduino.write("prime\n".encode())
+            arduino.flush()
+            data = arduino.readline().decode('utf-8').rstrip()
+            print(data)
+            while data != 'bay1':
+                data = arduino.readline().decode('utf-8').rstrip()
+                print(data)
+            if data == 'bay1':
+                arduino.write(priming[0].encode('utf-8'))
+                data = arduino.readline().decode('utf-8').rstrip()
+                print(data)
+                # time.sleep(0.05)
+            if data == 'bay2':
+                arduino.write(priming[1].encode('utf-8'))
+                data = arduino.readline().decode('utf-8').rstrip()
+                print(data)
+                time.sleep(0.05)
+            if data == 'bay3':
+                arduino.write(priming[2].encode('utf-8'))
+                data = arduino.readline().decode('utf-8').rstrip()
+                print(data)
+                time.sleep(0.05)
+            if data == 'bay4':
+                arduino.write(priming[3].encode('utf-8'))
+                data = arduino.readline().decode('utf-8').rstrip()
+                print(data)
+                time.sleep(0.05)
+            if data == 'bay5':
+                arduino.write(priming[4].encode('utf-8'))
+                data = arduino.readline().decode('utf-8').rstrip()
+                print(data)
+                time.sleep(0.05)
+            if data == 'bay6':
+                arduino.write(priming[5].encode('utf-8'))
+                data = arduino.readline().decode('utf-8').rstrip()
+                print(data)
+                time.sleep(0.05)
+            while data != 'Done':
+                data = arduino.readline().decode('utf-8').rstrip()
+                print(data)
+                set_labels()
+                clear()
+
+        cb_var1 = tk.IntVar()
+        cb_var2 = tk.IntVar()
+        cb_var3 = tk.IntVar()
+        cb_var4 = tk.IntVar()
+        cb_var5 = tk.IntVar()
+        cb_var6 = tk.IntVar()
+        cb_vars = [cb_var1, cb_var2, cb_var3, cb_var4, cb_var5, cb_var6]
+
+        C1 = tk.Checkbutton(self, text="1", font=fatFingerFont, background='gray24',
+                            foreground='gray99', indicatoron=0, variable=cb_var1, onvalue=1, offvalue=0)
+        C2 = tk.Checkbutton(self, text="2", font=fatFingerFont, background='gray24',
+                            foreground='gray99', indicatoron=0, variable=cb_var2, onvalue=1, offvalue=0)
+        C3 = tk.Checkbutton(self, text="3", font=fatFingerFont, background='gray24',
+                            foreground='gray99', indicatoron=0, variable=cb_var3, onvalue=1, offvalue=0)
+        C4 = tk.Checkbutton(self, text="4", font=fatFingerFont, background='gray24',
+                            foreground='gray99', indicatoron=0, variable=cb_var4, onvalue=1, offvalue=0)
+        C5 = tk.Checkbutton(self, text="5", font=fatFingerFont, background='gray24',
+                            foreground='gray99', indicatoron=0, variable=cb_var5, onvalue=1, offvalue=0)
+        C6 = tk.Checkbutton(self, text="6", font=fatFingerFont, background='gray24',
+                            foreground='gray99', indicatoron=0, variable=cb_var6, onvalue=1, offvalue=0)
+        C1.place(width=50, height=30, relx=512/1024, rely=183/600)
+        C2.place(width=50, height=30, relx=565/1024, rely=279/600)
+        C3.place(width=50, height=30, relx=512/1024, rely=373/600)
+        C4.place(width=50, height=30, relx=399/1024, rely=373/600)
+        C5.place(width=50, height=30, relx=349/1024, rely=279/600)
+        C6.place(width=50, height=30, relx=402/1024, rely=183/600)
+
+        recipeScroll = ttk.Scrollbar(self)
+        recipeScroll.place(height=250, width=25, relx=945 / 1024, rely=190 / 600)
+        recipeList = tk.Listbox(self, yscrollcommand=recipeScroll.set, font=fatFingerFont)
+        for i in range(6):
+            recipeList.insert(i, (ingredient_options[i]))
+        recipeList.place(height=250, width=250, relx=695 / 1024, rely=190 / 600)
+        recipeScroll.config(command=recipeList.yview)
+
+        set_inv = tk.Button(self, text="Update Inventory", font=fatFingerFont, bg='gray50', command=lambda: upd_inv_confirm())
+        set_inv.place(relx=695/1024, rely=460/600, height=70, width=275)
 
 
 class p10(tk.Frame):  # help menu
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent, bg='gray24')
 
-        headerFont = tkFont.Font(family='Bell Gothic Std Light', size=18)
+        headerFont = tkFont.Font(family='Bell Gothic Std Light', size=16)
         fatFingerFont = tkFont.Font(family='Bell Gothic Std Light', size=16)
         welcomeFont = tkFont.Font(family='Bell Gothic Std Light', size=42, weight='bold')
 
         backtoMenu = ttk.Button(self, text="← Back to Main Menu", command=lambda: controller.show_frame(p1))
         backtoMenu.place(x=0, y=0, height=70, width=240)
 
-        instructionList = "Welcome to BotTender!\n\nTo get started with your drink, click one of the " + \
-                          "two buttons \nfor Custom/Shots or Mixed Drinks:\n\n    -The Custom Shots button will allow you " + \
-                          "to dispense individual shots\n\n    -The Mixed Drinks " + \
-                          "button will allow you to choose from one of our \n" + \
-                          "    pre-set recipes based on the options you have " + \
-                          "loaded your BotTender with.\n\n    -There are options to " + \
-                          "sort by ingredient or search for your favorite recipe\n\n" + \
-                          "    -The settings menu will show you the fill status of " + \
-                          'your containers and\n    allow you to prime the pumps ' + \
-                          "when replacing your containers."
+        instructionList = "Welcome to BotTender!\n\nTo get started with BotTender, click one of the menu " + \
+                          "options\nfrom the MAIN MENU for CUSTOM DRINKS or " \
+                          "DRINKS LIST:\n\n    -The CUSTOM DRINKS option will allow you " + \
+                          "to dispense customized drinks \n    or individual shots\n\n    -The DRINKS LIST " + \
+                          "option will allow you to choose from one of our pre-set \n" + \
+                          "    recipes loaded your with BotTender based on the ingredients available. " + \
+                          "\n    With options to sort by ingredient, it's easy to find a drink.\n\n" + \
+                          "    -The settings menu will lead to the INVENTORY MENU to manage " \
+                          "ingredient\n    refills and change, and the LED MENU to control the lighting scheme"
 
         helpInstructions = ttk.Label(self, text=instructionList, font=headerFont, background='gray24', foreground='gray99')
         helpInstructions.place(relx=0.09, rely=0.2)

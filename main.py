@@ -19,16 +19,16 @@ options = [["", "", "", "", "", ""],    # 0 name
 option_labels = ["", "", "", "", "", ""]
 
 recipeArray = [["Cuba Libre", "Harpoon", "Cape Codder", "Kamikaze", "Vodka Gimlet", "Cranberry Vodka"],
-               ["011001", "100111", "100101", "100011", "100001", "100100"],
-               ["0\n", "40\n", "39\n", "34\n", "50\n", "25\n"],     # vodka
-               ["27\n", "0\n", "0\n", "0\n", "0\n", "0\n"],         # rum
-               ["66\n", "0\n", "0\n", "0\n", "0\n", "0\n"],         # coke
-               ["0\n", "53\n", "54\n", "0\n", "0\n", "65\n"],       # cran juice
-               ["0\n", "0\n", "0\n", "33\n", "0\n", "0\n"],        # triple sec
-               ["7\n", "7\n", "7\n", "33\n", "50\n", "10\n"],       # lime juice
+               ["011001", "100101", "100111", "100011", "100001", "100101"],
+               [0,  40, 36, 34, 50, 25],    # vodka
+               [27, 0,  0,  0,  0,  0],     # rum
+               [66, 0,  0,  0,  0,  0],     # coke
+               [0,  53, 50, 0,  0,  65],    # cran juice
+               [0,  0,  7,  33, 0,  0],     # triple sec
+               [7,  7,  7,  33, 50, 10],    # lime juice
                ["Rum: 1 2/3 oz\nLime Juice: 1/4 oz\nCoke: 4 oz",
                 "Vodka: 1 1/2 oz\nLime Juice: 1/4 oz\nCranberry Juice: 2 oz",
-                "Vodka: 1 1/2 oz\nLime Juice: 1/4 oz\nCranberry Juice: 2 oz",
+                "Vodka: 1 1/2 oz\nTriple Sec: 1/4 oz\nLime Juice: 1/4 oz\nCranberry Juice: 2 oz",
                 "Vodka: 1 oz\nTriple Sec: 1 oz\nLime Juice: 1 oz",
                 "Vodka: 1 oz\nLime Juice: 1 oz",
                 "Vodka: 1 1/3 oz\nLime Juice: 1/3 oz\nCranberry Juice: 3 oz"]]
@@ -381,8 +381,8 @@ class p3(tk.Frame):  # Mixed drink menu
                 recipeList.insert(k, (recipeArray[0][k]))
             rb_select = rvar.get()
             for j in reversed(range(6)):
-                print(cb_labels[1][rb_select])
-                print(recipeArray[1][j])
+                #print(cb_labels[1][rb_select])
+                #print(recipeArray[1][j])
                 if list(cb_labels[1][rb_select])[rb_select] != list(recipeArray[1][j])[rb_select]:
                     recipeList.delete(j)
 
@@ -455,14 +455,24 @@ class p3(tk.Frame):  # Mixed drink menu
 
         def pourFunc(event):
             # python side
-            global drinkIngredients
-            drinkIngredients = ''
+            dispense = ["", "", "", "", "", ""]
+            meas = 0
             for i in range(6):
-                if drinkName == recipeArray[0][i]:
-                    drinkIngredients = recipeArray[1][i]
-            print('Drink ingredients:' + str(drinkIngredients))
+                if recipeArray[0][i] == drinkName:
+                    for each in range(6):
+                        if list(recipeArray[1][i])[each] == '1':
+                            count = int(options[num_bays][each])
+                            if count > 1:
+                                meas = int(recipeArray[each+2][i] / count)
+                                for every in range(6):
+                                    if list(options[bay_id][each])[every] == '1':
+                                        dispense[every] = str(meas) + "\n"
+                            elif count == 1:
+                                dispense[each] = str(recipeArray[each+2][i]) + "\n"
+                    print(dispense)
+            #print('Drink ingredients:' + str(drinkIngredients))
 
-            # arduino1 side
+            # Arduino comm code
             arduino.flush()
             arduino.write("selected\n".encode())
             arduino.flush()
@@ -473,33 +483,33 @@ class p3(tk.Frame):  # Mixed drink menu
                 data = arduino.readline().decode('utf-8').rstrip()
                 print(data)
                 arduino.write("selected\n".encode())
-            if data == 'Vodka':
-                arduino.write(recipeArray[2][index2].encode('utf-8'))
+            if data == 'bay1':
+                arduino.write(dispense[0].encode('utf-8'))
                 data = arduino.readline().decode('utf-8').rstrip()
                 print(data)
                 time.sleep(0.05)
-            if data == 'WhiteRum':
-                arduino.write(recipeArray[3][index2].encode('utf-8'))
+            if data == 'bay2':
+                arduino.write(dispense[1].encode('utf-8'))
                 data = arduino.readline().decode('utf-8').rstrip()
                 print(data)
                 time.sleep(0.05)
-            if data == 'TripleSec':
-                arduino.write(recipeArray[4][index2].encode('utf-8'))
+            if data == 'bay3':
+                arduino.write(dispense[2].encode('utf-8'))
                 data = arduino.readline().decode('utf-8').rstrip()
                 print(data)
                 time.sleep(0.05)
-            if data == 'Coke':
-                arduino.write(recipeArray[5][index2].encode('utf-8'))
+            if data == 'bay4':
+                arduino.write(dispense[3].encode('utf-8'))
                 data = arduino.readline().decode('utf-8').rstrip()
                 print(data)
                 time.sleep(0.05)
-            if data == 'CranberryJuice':
-                arduino.write(recipeArray[6][index2].encode('utf-8'))
+            if data == 'bay5':
+                arduino.write(dispense[4].encode('utf-8'))
                 data = arduino.readline().decode('utf-8').rstrip()
                 print(data)
                 time.sleep(0.05)
-            if data == 'LimeJuice':
-                arduino.write(recipeArray[7][index2].encode('utf-8'))
+            if data == 'bay6':
+                arduino.write(dispense[5].encode('utf-8'))
                 data = arduino.readline().decode('utf-8').rstrip()
                 print(data)
                 time.sleep(0.05)

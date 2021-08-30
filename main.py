@@ -61,11 +61,11 @@ print(option_labels)
 #************************************************************************************
 
 arduino = serial.Serial()
-arduino.port = 'COM4'
+arduino.port = 'COM5'
 arduino.baudrate = 9600
 arduino.timeout = 0.1
 arduino.setRTS(False)
-#arduino.open()
+arduino.open()
 
 
 class MainView(tk.Tk):
@@ -146,7 +146,6 @@ class p2(tk.Frame):  # Custom/Shots
 
         def resetCount():
             #print("reset")
-            i = 0
             for i in range(6):
                 if customCount[i] > 0:
                     customCount[i] -= customCount[i]
@@ -193,55 +192,86 @@ class p2(tk.Frame):  # Custom/Shots
         def customPourFunc(event):
             # gui stuff
             global customIngredients
-            currentOrder = ["", "", "", "", "", ""]
+            currentOrder = ["", "", "", "", "", "", ""]
             newline = "\n"
             for i in range(6):
                 currentOrder[i] = str(customCount[i] * 100)
                 currentOrder[i] = currentOrder[i] + newline
 
+            currentOrder[6] = "1\n"
+
+            print(currentOrder)
+
             arduino.flush()
-            arduino.write("custom\n".encode())
-            arduino.flush()
-            data = arduino.readline().decode('utf-8').rstrip()
-            print(data)
-            while data != 'Vodka':
-                data = arduino.readline().decode('utf-8').rstrip()
-                print(data)
-            if data == 'Vodka':
-                arduino.write(currentOrder[0].encode('utf-8'))
-                data = arduino.readline().decode('utf-8').rstrip()
-                print(data)
-                # time.sleep(0.05)
-            if data == 'WhiteRum':
-                arduino.write(currentOrder[1].encode('utf-8'))
-                data = arduino.readline().decode('utf-8').rstrip()
-                print(data)
-                time.sleep(0.05)
-            if data == 'TripleSec':
-                arduino.write(currentOrder[2].encode('utf-8'))
-                data = arduino.readline().decode('utf-8').rstrip()
-                print(data)
-                time.sleep(0.05)
-            if data == 'Coke':
-                arduino.write(currentOrder[3].encode('utf-8'))
-                data = arduino.readline().decode('utf-8').rstrip()
-                print(data)
-                time.sleep(0.05)
-            if data == 'CranberryJuice':
-                arduino.write(currentOrder[4].encode('utf-8'))
-                data = arduino.readline().decode('utf-8').rstrip()
-                print(data)
-                time.sleep(0.05)
-            if data == 'LimeJuice':
-                arduino.write(currentOrder[5].encode('utf-8'))
-                data = arduino.readline().decode('utf-8').rstrip()
-                print(data)
-                time.sleep(0.05)
-            while data != 'Done':
-                data = arduino.readline().decode('utf-8').rstrip()
-                print(data)
-                resetCount()
-                controller.show_frame(p1)
+            arduino.write("dispense\n".encode('utf-8'))
+            #print("dispense")
+            data = arduino.read()
+            #print(int.from_bytes(data, byteorder='big'))
+            while int.from_bytes(data, byteorder='big') != 18:
+                if int.from_bytes(data, byteorder='big') == 1:
+                    arduino.write(currentOrder[0].encode('utf-8'))
+                    #print(currentOrder[0])
+                    data = arduino.read()
+                    print(int.from_bytes(data, byteorder='big'))
+                    time.sleep(0.05)
+                if int.from_bytes(data, byteorder='big') == 2:
+                    arduino.write(currentOrder[1].encode('utf-8'))
+                    #print(currentOrder[1])
+                    data = arduino.read()
+                    print(int.from_bytes(data, byteorder='big'))
+                    time.sleep(0.05)
+                if int.from_bytes(data, byteorder='big') == 3:
+                    arduino.write(currentOrder[2].encode('utf-8'))
+                    #print(currentOrder[2])
+                    data = arduino.read()
+                    print(int.from_bytes(data, byteorder='big'))
+                    time.sleep(0.05)
+                if int.from_bytes(data, byteorder='big') == 4:
+                    arduino.write(currentOrder[3].encode('utf-8'))
+                    #print(currentOrder[3])
+                    data = arduino.read()
+                    print(int.from_bytes(data, byteorder='big'))
+                    time.sleep(0.05)
+                if int.from_bytes(data, byteorder='big') == 5:
+                    arduino.write(currentOrder[4].encode('utf-8'))
+                    #print(currentOrder[4])
+                    data = arduino.read()
+                    print(int.from_bytes(data, byteorder='big'))
+                    time.sleep(0.05)
+                if int.from_bytes(data, byteorder='big') == 6:
+                    arduino.write(currentOrder[5].encode('utf-8'))
+                    #print(currentOrder[5])
+                    data = arduino.read()
+                    print(int.from_bytes(data, byteorder='big'))
+                    time.sleep(0.05)
+                if int.from_bytes(data, byteorder='big') == 7:
+                    arduino.write(currentOrder[6].encode('utf-8'))
+                    #print(currentOrder[6])
+                    data = arduino.read()
+                    print(int.from_bytes(data, byteorder='big'))
+                    time.sleep(0.05)
+                if int.from_bytes(data, byteorder='big') == 18:
+                    arduino.close()
+                    arduino.open()
+                    resetCount()
+                    controller.show_frame(p1)
+                #else:
+                #    data = arduino.read()
+                #    print(int.from_bytes(data, byteorder='big'))
+
+
+                #if data == b'':
+                #    arduino.close()
+                #    arduino.open()
+                #    resetCount()
+                #    controller.show_frame(p1)
+                #else:
+                #    arduino.write("dispense\n".encode('utf-8'))
+                #    print("commanding dispense")
+                #    time.sleep(0.05)
+                #    data = arduino.read()
+                #    print(int.from_bytes(data, byteorder='big'))
+
 
         custom_pour = tk.Button(self, text="Pour Custom Selection", font=fatFingerFont, bg='gray50', command=lambda: confirm_pour())
         custom_pour.place(relx=.16, rely=.85, height=70, width=420)
@@ -380,6 +410,7 @@ class p3(tk.Frame):  # Mixed drink menu
                 recipeList.delete(k)
                 recipeList.insert(k, (recipeArray[0][k]))
             rb_select = rvar.get()
+            print(rb_select)
             for j in reversed(range(6)):
                 #print(cb_labels[1][rb_select])
                 #print(recipeArray[1][j])
@@ -455,7 +486,7 @@ class p3(tk.Frame):  # Mixed drink menu
 
         def pourFunc(event):
             # python side
-            dispense = ["", "", "", "", "", ""]
+            dispense = ["", "", "", "", "", "", ""]
             meas = 0
             for i in range(6):
                 if recipeArray[0][i] == drinkName:
@@ -470,60 +501,64 @@ class p3(tk.Frame):  # Mixed drink menu
                             elif count == 1:
                                 dispense[each] = str(recipeArray[each+2][i]) + "\n"
                     print(dispense)
-            #print('Drink ingredients:' + str(drinkIngredients))
+            dispense[6] = "8\n"
 
             # Arduino comm code
+            arduino.open()
             arduino.flush()
-            arduino.write("selected\n".encode())
-            arduino.flush()
+            arduino.write("dispense\n".encode())
             time.sleep(0.05)
-            data = arduino.readline().decode('utf-8').rstrip()
+            data = arduino.read()
             print(data)
-            while data != 'Vodka':
-                data = arduino.readline().decode('utf-8').rstrip()
+            while data != 1:
+                data = arduino.read()
                 print(data)
-                arduino.write("selected\n".encode())
-            if data == 'bay1':
+                arduino.write("dispense\n".encode())
+            if data == 1:
                 arduino.write(dispense[0].encode('utf-8'))
-                data = arduino.readline().decode('utf-8').rstrip()
+                data = arduino.read()
                 print(data)
                 time.sleep(0.05)
-            if data == 'bay2':
+            if data == 2:
                 arduino.write(dispense[1].encode('utf-8'))
-                data = arduino.readline().decode('utf-8').rstrip()
+                data = arduino.read()
                 print(data)
                 time.sleep(0.05)
-            if data == 'bay3':
+            if data == 3:
                 arduino.write(dispense[2].encode('utf-8'))
-                data = arduino.readline().decode('utf-8').rstrip()
+                data = arduino.read()
                 print(data)
                 time.sleep(0.05)
-            if data == 'bay4':
+            if data == 4:
                 arduino.write(dispense[3].encode('utf-8'))
-                data = arduino.readline().decode('utf-8').rstrip()
+                data = arduino.read()
                 print(data)
                 time.sleep(0.05)
-            if data == 'bay5':
+            if data == 5:
                 arduino.write(dispense[4].encode('utf-8'))
-                data = arduino.readline().decode('utf-8').rstrip()
+                data = arduino.read()
                 print(data)
                 time.sleep(0.05)
-            if data == 'bay6':
+            if data == 6:
                 arduino.write(dispense[5].encode('utf-8'))
-                data = arduino.readline().decode('utf-8').rstrip()
+                data = arduino.read()
+                print(data)
+                time.sleep(0.05)
+            if data == 7:
+                arduino.write(dispense[6].encode('utf-8'))
+                data = arduino.read()
                 print(data)
                 time.sleep(0.05)
 
-            while data != 'Done':
-                data = arduino.readline().decode('utf-8').rstrip()
+            while data != 18:
+                data = arduino.read()
                 print(data)
-                clear()
-                #resetAll()
-                controller.show_frame(p1)
 
             if data == 'Done':
                 arduino.close()
-                arduino.open()
+                clear()
+                # resetAll()
+                controller.show_frame(p1)
 
 
 class p4(tk.Frame):  # Settings
@@ -710,7 +745,7 @@ class p5(tk.Frame):  # inventory menu
                     options[5][it] = temp
                     print(temp)
 
-                    #*******************file io
+            #*******************file io
             with open(inv_file, 'w', newline='') as inv:
                 csvwriter = csv.writer(inv)
                 # for each row...
@@ -726,6 +761,50 @@ class p5(tk.Frame):  # inventory menu
                 print(options[i])
 
             #put arduino code back in here after testing
+            arduino.open()
+            arduino.flush()
+            arduino.write("prime\n".encode())
+            data = arduino.read()
+            print(data)
+            while data != 1:
+                arduino.write("prime\n".encode())
+                data = arduino.read()
+                print(data)
+            if data == 1:
+                arduino.write(priming[0].encode('utf-8'))
+                data = arduino.read()
+                print(data)
+                time.sleep(0.05)
+            if data == 2:
+                arduino.write(priming[1].encode('utf-8'))
+                data = arduino.read()
+                print(data)
+                time.sleep(0.05)
+            if data == 3:
+                arduino.write(priming[2].encode('utf-8'))
+                data = arduino.read()
+                print(data)
+                time.sleep(0.05)
+            if data == 4:
+                arduino.write(priming[3].encode('utf-8'))
+                data = arduino.read()
+                print(data)
+                time.sleep(0.05)
+            if data == 5:
+                arduino.write(priming[4].encode('utf-8'))
+                data = arduino.read()
+                print(data)
+                time.sleep(0.05)
+            if data == 6:
+                arduino.write(priming[5].encode('utf-8'))
+                data = arduino.read()
+                print(data)
+                time.sleep(0.05)
+            while data != 18:
+                data = arduino.read()
+                print(data)
+            if data == 18:
+                arduino.close()
                 set_labels()
                 clear()
 

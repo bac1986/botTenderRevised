@@ -7,8 +7,8 @@ from gpiozero import *
 from time import *
 import csv
 
-global bays
-bays = [LED(2), LED(3), LED(4), LED(17), LED(27), LED(22)]
+#global bays
+#bays = [LED(2), LED(3), LED(4), LED(17), LED(27), LED(22)]
 
 #************************************CSV Implementing********************************
 
@@ -283,6 +283,7 @@ class p3(tk.Frame):  # Mixed drink menu
         cb_labels = [["0", "0", "0", "0", "0", "0"],
                      ["", "", "", "", "", ""]]
         rvar = tk.IntVar()
+        dispense = [0, 0, 0, 0, 0, 0, 0]
 
         # ***************************************Labels*********************************************
         label = ttk.Label(self, text="Mixed Drink Menu", font=mainHeaderFont, background='gray24', foreground='gray99')
@@ -409,17 +410,43 @@ class p3(tk.Frame):  # Mixed drink menu
             else:
                 tk.messagebox.showerror("Selection", "Select a drink")
 
+        def findLowTime():
+            high = 0
+            for i in range(6):
+                if dispense[i] > high:
+                    high = dispense[i]
+            low = high
+            for j in range(6):
+                if (0 < dispense[j]) and (dispense[j] < low):
+                    low = dispense[j]
+            return low
+
+        def dispenseFluid():
+            dispenseTime = findLowTime()
+            print(dispenseTime)
+            while (dispenseTime > 0):
+                for j in range(6):
+                    if dispense[j] > 0:
+                        dispense[j] = dispense[j] - dispenseTime
+                        # bays[j].on()
+                        print("bay " + str(j) + " is on")
+                sleep(dispenseTime)
+                for l in range(6):
+                    if dispense[l] == 0:
+                        # bays[l].off()
+                        print("bay " + str(l) + " is off")
+                dispenseTime = findLowTime()
+                print(dispenseTime)
 
         def pourFunc(event):
             # python side
-            dispense = []
             for i in range(6):
                 if recipeArray[0][i] == drinkName:
                     for each in range(6):
                         if list(recipeArray[1][i])[each] == '1':
                             count = int(options[num_bays][each])
                             if count > 1:
-                                meas = int(recipeArray[each+2][i] / count)
+                                meas = recipeArray[each+2][i] / count
                                 for every in range(6):
                                     if list(options[bay_id][each])[every] == '1':
                                         dispense[every] = meas
@@ -427,33 +454,10 @@ class p3(tk.Frame):  # Mixed drink menu
                                 dispense[each] = recipeArray[each+2][i]
             dispense[6] = 8
             print(dispense)
-
-            def findLowTime():
-                high = 0
-                for i in range(6):
-                    if dispense[i] > high:
-                        high = dispense[i]
-                low = high
-                for j in range(6):
-                    if (0 < dispense[j]) and (dispense[j] < low):
-                        low = dispense[j]
-                return low
-
-            def dispenseFluid():
-                dispenseTime = findLowTime()
-
-                while (dispenseTime > 0):
-                    for j in range(6):
-                        if dispense[j] > 0:
-                            dispense[j] = dispense[j] - dispenseTime
-                            bays[j].on()
-                    for k in range(6):
-                        sleep(dispenseTime)
-                    for l in range(6):
-                        if dispense[l] == 0:
-                            bays[l].off()
-                    dispenseTime = findLowTime()
             dispenseFluid()
+            clear()
+            controller.show_frame(p1)
+
 
 
 class p4(tk.Frame):  # Settings

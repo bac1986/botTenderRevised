@@ -7,8 +7,8 @@ from gpiozero import *
 from time import *
 import csv
 
-#global bays
-#bays = [LED(2), LED(3), LED(4), LED(17), LED(27), LED(22)]
+global bays
+bays = [LED(2), LED(3), LED(4), LED(17), LED(27), LED(22)]
 
 #************************************CSV Implementing********************************
 
@@ -134,6 +134,7 @@ class p2(tk.Frame):  # Custom/Shots
 
         global customCount
         customCount = [0] * 6
+        currentOrder = [0] * 7
 
         def selected():
             if sum(customCount) == 0:
@@ -174,6 +175,32 @@ class p2(tk.Frame):  # Custom/Shots
             shotCounterLabel["text"] = currentShotCount
             customCount[index] = currentShotCount
 
+        def findLowTime():
+            high = 0
+            for i in range(6):
+                if currentOrder[i] > high:
+                    high = currentOrder[i]
+            low = high
+            for j in range(6):
+                if (0 < currentOrder[j]) and (currentOrder[j] < low):
+                    low = currentOrder[j]
+            return low
+
+        def dispenseFluid():
+            quantity = findLowTime()
+            while (quantity > 0):
+                for j in range(6):
+                    if currentOrder[j] > 0:
+                        currentOrder[j] = currentOrder[j] - quantity
+                        bays[j].on()
+                        #print("bay " + str(j) + " is on")
+                sleep(quantity)
+                for l in range(6):
+                    if currentOrder[l] == 0:
+                        bays[l].off()
+                        #print("bay " + str(l) + " is off")
+                quantity = findLowTime()
+
         def confirm_pour():
             if sum(customCount) != 0:
                 if messagebox.askquestion("Confirm", "Do you want to dispense this custom order?") == "yes":
@@ -185,17 +212,13 @@ class p2(tk.Frame):  # Custom/Shots
                 tk.messagebox.showerror("Selection", "Select ingredient(s)")
 
         def customPourFunc(event):
-            # gui stuff
-            global customIngredients
-            currentOrder = ["", "", "", "", "", "", ""]
-            newline = "\n"
             for i in range(6):
-                currentOrder[i] = str(customCount[i] * 100)
-                currentOrder[i] = currentOrder[i] + newline
-
-            currentOrder[6] = "1\n"
-
+                currentOrder[i] = customCount[i] * 18
+            currentOrder[6] = 1
             print(currentOrder)
+            dispenseFluid()
+            resetCount()
+            controller.show_frame(p1)
 
 
         custom_pour = tk.Button(self, text="Pour Custom Selection", font=fatFingerFont, bg='gray50', command=lambda: confirm_pour())
@@ -428,13 +451,13 @@ class p3(tk.Frame):  # Mixed drink menu
                 for j in range(6):
                     if dispense[j] > 0:
                         dispense[j] = dispense[j] - dispenseTime
-                        # bays[j].on()
-                        print("bay " + str(j) + " is on")
+                        bays[j].on()
+                        #print("bay " + str(j) + " is on")
                 sleep(dispenseTime)
                 for l in range(6):
                     if dispense[l] == 0:
-                        # bays[l].off()
-                        print("bay " + str(l) + " is off")
+                        bays[l].off()
+                        #print("bay " + str(l) + " is off")
                 dispenseTime = findLowTime()
                 print(dispenseTime)
 
@@ -457,7 +480,6 @@ class p3(tk.Frame):  # Mixed drink menu
             dispenseFluid()
             clear()
             controller.show_frame(p1)
-
 
 
 class p4(tk.Frame):  # Settings
@@ -652,12 +674,18 @@ class p5(tk.Frame):  # inventory menu
 
             #*******************arduino comm
             priming = ["", "", "", "", "", ""]
-            newline = "\n"
 
             for i in range(6):
                 priming[i] = str(prime_bay[i])
-                priming[i] = priming[i] + newline
-                print(options[i])
+                print(priming[i])
+                if priming[i] == '1':
+                    bays[i].on()
+                    #print("bay " + str(i) + " is priming")
+            sleep(10)
+            for i in range(6):
+                if priming[i] == '1':
+                    bays[i].off()
+                    #print("bay " + str(i) + " is primed")
 
 
 class p10(tk.Frame):  # help menu

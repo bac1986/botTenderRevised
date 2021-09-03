@@ -412,8 +412,7 @@ class p3(tk.Frame):  # Mixed drink menu
 
         def pourFunc(event):
             # python side
-            dispense = ["", "", "", "", "", "", ""]
-            meas = 0
+            dispense = []
             for i in range(6):
                 if recipeArray[0][i] == drinkName:
                     for each in range(6):
@@ -423,11 +422,11 @@ class p3(tk.Frame):  # Mixed drink menu
                                 meas = int(recipeArray[each+2][i] / count)
                                 for every in range(6):
                                     if list(options[bay_id][each])[every] == '1':
-                                        dispense[every] = str(meas) + "\n"
+                                        dispense[every] = meas
                             elif count == 1:
-                                dispense[each] = str(recipeArray[each+2][i]) + "\n"
-                    print(dispense)
-            dispense[6] = "8\n"
+                                dispense[each] = recipeArray[each+2][i]
+            dispense[6] = 8
+            print(dispense)
 
             def findLowTime():
                 high = 0
@@ -448,14 +447,13 @@ class p3(tk.Frame):  # Mixed drink menu
                         if dispense[j] > 0:
                             dispense[j] = dispense[j] - dispenseTime
                             bays[j].on()
-                        else:
-                            pass
                     for k in range(6):
                         sleep(dispenseTime)
                     for l in range(6):
                         if dispense[l] == 0:
                             bays[l].off()
                     dispenseTime = findLowTime()
+            dispenseFluid()
 
 
 class p4(tk.Frame):  # Settings
